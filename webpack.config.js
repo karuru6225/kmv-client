@@ -49,6 +49,17 @@ let webpackConfig = {
         ]
       },
       {
+        test: /\.js$/,
+        exclude: [
+          /node_modules|vue\/dist|vue-router\/|vue-loader\/|vue-hot-reload-api\//
+        ],
+        use: [
+          {
+            loader: 'babel-loader',
+          }
+        ]
+      },
+      {
         test: /\.scss$/,
         exclude: /node_modules/,
         include: path.resolve(__dirname, config.srcDir + 'css'),
@@ -166,8 +177,7 @@ if(config.env == 'production'){
     new webpack.optimize.UglifyJsPlugin({
       compress: {
         warnings: false
-      },
-      exclude: /apppot.js/
+      }
     }),
     new webpack.optimize.AggressiveMergingPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin()
