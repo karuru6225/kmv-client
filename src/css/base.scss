@@ -1,0 +1,26 @@
+@charset "utf-8";
+
+@import "./settings";
+@import "./font-awesome/scss/font-awesome";
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #f7f7f7;
+  color: $primaryTextColor;
+  font-size: 14px;
+  height: 100%;
+  width: 100%;
+}
+
+div, p, span {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+#app {
+  min-height: 100%;
+  min-width: 100%;
+}
