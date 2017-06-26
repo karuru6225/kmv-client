@@ -11,16 +11,19 @@ export default {
   state: {
     files: [],
     current: {},
+    previousId: ''
   },
   mutations: {
     cd(state, payload) {
       state.files = payload.files;
       state.current = payload.current;
+    },
+    previous(state, payload){
+      state.previousId = payload;
     }
   },
   actions: {
     dir({commit}, payload) {
-      console.log(payload);
       axios.get('dir/' + payload.id)
         .then( res => {
           const files = res.data.files.map( item => {
@@ -36,6 +39,9 @@ export default {
             current: res.data.current,
             files
           });
+          if(payload.cb){
+            payload.cb();
+          }
         })
         .catch(err => {
           console.log(err);

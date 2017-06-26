@@ -5,42 +5,15 @@
       :name="$store.state.zip.name"
       :class="$data.headerClass"
     />
+    <div :class="$style.main" ref="imageArea" @click="e => click(e)">
+      <template v-for="img in $data.images">
+        <img :src="img.src" :style="getImageStyle(img)"/>
+      </template>
+    </div>
     <div :class="getStatusBarClass()">
       <template v-for="(stat, idx) in $store.state.zip.imageStatuses">
         <div :class="getLoadStatClass(stat, idx)"></div>
       </template>
-    </div>
-    <div :class="$style.main" v-if="!$data.leftFirst" ref="imageArea">
-      <div>
-        <img ref="rightImage"
-          @dblclick="dblclick('right')"
-          @click="next()"
-          :class="$data.rightFlip"
-        />
-      </div>
-      <div>
-        <img ref="leftImage"
-          @dblclick="dblclick('left')"
-          @click="prev()"
-          :class="$data.leftFlip"
-        />
-      </div>
-    </div>
-    <div :class="$style.main" v-if="$data.leftFirst" ref="imageArea">
-      <div>
-        <img ref="leftImage"
-          @dblclick="dblclick('left')"
-          @click="prev()"
-          :class="$data.leftFlip"
-        />
-      </div>
-      <div>
-        <img ref="rightImage"
-          @dblclick="dblclick('right')"
-          @click="next()"
-          :class="$data.rightFlip"
-        />
-      </div>
     </div>
   </div>
 </template>
@@ -50,6 +23,7 @@ import CommonHeader from 'organisms/header.vue';
 import VertDiv from 'atoms/block/vertical-divider.vue';
 import ListButton from 'atoms/button/iconfont-base.vue';
 import { mapState } from 'vuex';
+import $ from 'jquery';
 
 export default {
   components: {
@@ -64,7 +38,7 @@ export default {
       if(this.$data[pos+'Flip']){
         this.$data[pos+'Flip'] = null;
       }else{
-        this.$data[pos+'Flip'] = this.$style.flipImage;;
+        this.$data[pos+'Flip'] = this.$style.flipImage;
       }
     },
     getStatusBarClass(){
@@ -83,17 +57,6 @@ export default {
       }
       return this.$style.loading;
     },
-    toggleSearch(){
-    },
-    parentDir: function(e){
-      e.preventDefault();
-      this.$router.push(PublicPath + 'directory/' + this.$store.state.zip.parentId);
-      this.$store.dispatch('zip/stopLoadImages');
-    },
-    logout: function(e) {
-      e.preventDefault();
-      this.$store.dispatch('auth/logout');
-    },
     fetchData: function() {
       this.$store.dispatch('zip/files', {
         id: this.id||'',
@@ -107,28 +70,52 @@ export default {
       return Math.max(Math.min(page, this.fileCount - 1), 0);
     },
     prev(){
-      this.$data.currentPage =  this.saturation(this.$data.currentPage - 2);
+      let delta = 2;
+      const nextBase = this.saturation(this.$data.currentPage - 2);
+      this.$store.dispatch('zip/startLoadImages', {offset: nextBase});
+      const img1 = this.$store.state.zip.images[nextBase];
+      const img2 = this.$store.state.zip.images[nextBase + 1];
+      if(img1.width > img1.height || img2.width > img2.height){
+        delta = 1;
+      }
+      this.$data.currentPage =  this.saturation(this.$data.currentPage - delta);
       this.pageUpdate();
     },
     next(){
-      this.$data.currentPage =  this.saturation(this.$data.currentPage + 2);
+      let delta = 2;
+      if(this.$data.spread){
+        delta = 1;
+      }
+      this.$data.currentPage =  this.saturation(this.$data.currentPage + delta);
+      this.$store.dispatch('zip/startLoadImages', {offset: this.$data.currentPage});
       this.pageUpdate();
     },
     onePage(){
       this.$data.currentPage =  this.saturation(this.$data.currentPage - 1);
+      this.$store.dispatch('zip/startLoadImages', {offset: this.$data.currentPage});
       this.pageUpdate();
     },
     pageUpdate(){
-      this.$data.shown = [false, false];
-      this.$store.dispatch('zip/startLoadImages', {offset: this.$data.currentPage});
-      if(this.$refs.leftImage){
-        this.$refs.leftImage.src = '';
-      }
-      if(this.$refs.rightImage){
-        this.$refs.rightImage.src = '';
-      }
       this.$data.leftFlip = this.$data.rightFlip = false;
+      this.$data.images = [];
+      this.$data.spread = false;
       this.setImage();
+    },
+    click(e) {
+      const wWidth = $(window).width();
+      if(wWidth/2 < e.clientX){
+        if(this.$data.leftFirst){
+          this.next();
+        }else{
+          this.prev();
+        }
+      }else{
+        if(this.$data.leftFirst){
+          this.prev();
+        }else{
+          this.next();
+        }
+      }
     },
     keyup(e) {
       e.preventDefault();
@@ -149,23 +136,53 @@ export default {
           return;
       }
     },
+    getImageStyle(img){
+      const $imageArea = $(this.$refs.imageArea);
+      let wWidth = $imageArea.width() / 2.0;
+      if(this.$data.spread){
+        wWidth = $imageArea.width();
+      }
+      const wHeight = $imageArea.height();
+      if( img.width / img.height > wWidth / wHeight ){
+        return {
+          width: wWidth + 'px',
+          height: wWidth * img.height / img.width + 'px'
+        };
+      }else{
+        return {
+          width: wHeight * img.width / img.height + 'px',
+          height: wHeight + 'px',
+        };
+      }
+    },
     setImage() {
       const url = window.URL || window.webkitURL;
       const zip = this.$store.state.zip;
       const page = this.$data.currentPage;
-      if(zip.images[page] && !this.$data.shown[0]) {
-        const leftBlob = zip.images[page];
-        console.log(this.$refs.leftImage);
-        this.$refs.leftImage.src = url.createObjectURL(leftBlob);
-        this.$data.shown[0] = true;
+      const images = [];
+      if(zip.images[page]) {
+        const img = zip.images[page];
+        if( img.width > img.height ){
+          this.$data.spread = true;
+        }
+        images.push(img);
+      }else{
+        return;
       }
-      if(zip.images[page+1] && !this.$data.shown[1] && page+1 < this.fileCount) {
-        const rightBlob = zip.images[page+1];
-        console.log(this.$refs.rightImage);
-        this.$refs.rightImage.src = url.createObjectURL(rightBlob);
-        this.$data.shown[1] = true;
+      if(zip.images[page+1] && page+1 < this.fileCount) {
+        const img = zip.images[page+1];
+        if( img.width > img.height ){
+          this.$data.spread = true;
+        }
+        images.push(img);
       }
-
+      if(this.$data.spread){
+        images.splice(1);
+      }
+      if(!this.$data.leftFirst){
+        images.reverse();
+      }
+      this.$data.images = images;
     },
     mousemove(e) {
       if(e.clientY < 44) {
@@ -177,12 +194,13 @@ export default {
   },
   data() {
     return {
-      shown: [false, false],
       currentPage: +(this.page||0),
       leftFirst: false,
       headerClass: this.$style.headerHidden,
       leftFlip: null,
       rightFlip: null,
+      spread: false,
+      images: []
     };
   },
   computed: mapState({
@@ -196,12 +214,12 @@ export default {
   },
   created: function() {
     this.fetchData();
-    console.log('created');
     window.addEventListener('keyup', this.keyup.bind(this));
     window.addEventListener('mousemove', this.mousemove.bind(this));
   },
+  mounted: function() {
+  },
   destroyed: function() {
-    console.log('destroyed');
     window.removeEventListener('keyup', this.keyup.bind(this));
     window.removeEventListener('mousemove', this.mousemove.bind(this));
     this.$store.dispatch('zip/stopLoadImages');
@@ -226,20 +244,15 @@ export default {
   margin: 0 auto;
   height: calc(100vh - 2px);
   justify-content: center;
-  > * {
-    flex-basis: 0px;
-    flex-grow: 1;
-    height: 100%;
-    &:first-child {
-      text-align: right;
-    }
-  }
+  align-content: flex-start;
 }
 
 .loadStatus {
   display: flex;
   width: 100vw;
   height: 2px;
+  position: absolute;
+  bottom: 0;
   > * {
     flex-grow: 1;
   }

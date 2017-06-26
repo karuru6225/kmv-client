@@ -5,24 +5,24 @@
         <tr>
           <th :class="[$style.theadTh, $style.name]" @click="sortFiles('name')">
             <span>名前</span>
-            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="$data.asc == 1 && $data.sortCol == 'name'" />
-            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="$data.asc == -1 && $data.sortCol == 'name'" />
+            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'name'" />
+            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'name'" />
           </th>
           <th :class="$style.theadTh" @click="sortFiles('mtime')">
             <span>変更日</span>
-            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="$data.asc == 1 && $data.sortCol == 'mtime'" />
-            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="$data.asc == -1 && $data.sortCol == 'mtime'" />
+            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'mtime'" />
+            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'mtime'" />
           </th>
           <th :class="$style.theadTh" @click="sortFiles('size')">
             <span>サイズ</span>
-            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="$data.asc == 1 && $data.sortCol == 'size'" />
-            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="$data.asc == -1 && $data.sortCol == 'size'" />
+            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'size'" />
+            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'size'" />
           </th>
         </tr>
       </thead>
       <tbody>
         <template v-for="file in $data.sortedFiles">
-          <file :file="file" />
+          <file :file="file" :class="file.id == highlight ? $style.highlight : ''"/>
         </template>
       </tbody>
     </table>
@@ -43,34 +43,56 @@ export default {
     files: {
       type: Array,
       default: () => []
+    },
+    sort: {
+      type: String,
+      default: () => 'name'
+    },
+    asc: {
+      type: Boolean,
+      default: () => true
+    },
+    highlight: {
+      type: String,
+      default: () => ''
     }
   },
   methods: {
     sortFiles(type){
-      let compFunc = null;
       if(this.$data.sortCol == type){
-        this.$data.asc *= -1;
+        this.$data.order *= -1;
       }else{
-        this.$data.asc = 1;
+        this.$data.order = 1;
       }
       this.$data.sortCol = type;
-      switch(type){
+
+      const params = {
+        sort: type,
+        asc: this.$data.order == 1
+      };
+
+      this.$emit('changeOrder', params);
+      return;
+    },
+    getSortFunc(col, order){
+      let compFunc = null;
+      switch(col){
         case 'name':
-          compFunc = (a, b) => naturalCompare(a.name, b.name);
+          return (a, b) => order * naturalCompare(a.name, b.name);
           break;
         case 'mtime':
-          compFunc = (a, b) => {
+          return (a, b) => {
             if( !(a.mtime instanceof Date) ){
-              return 1;
+              return order;
             }
             if( !(b.mtime instanceof Date) ){
-              return -1;
+              return -1 * order;
             }
-            return a.mtime.getTime() - b.mtime.getTime();
+            return order * ( a.mtime.getTime() - b.mtime.getTime() );
           };
           break;
         case 'size':
-          compFunc = (a, b) => {
+          return (a, b) => {
             /*if(a.type == 'directory' && b.type == 'directory'){
               return naturalCompare(a.name, b.name);
             }
@@ -80,27 +102,27 @@ export default {
             if(b.type == 'directory'){
               return -1;
             }*/
-            return a.size - b.size
+            return order * ( a.size - b.size )
           }
           break;
       }
-      if(!compFunc) return;
-      this.$data.sortedFiles = this.files.slice().sort( (a, b) => {
-        return this.$data.asc * compFunc(a, b);
-      });
     },
+    getSortedArray(sort, order){
+      return this.files.slice().sort( this.getSortFunc(sort, order) );
+    }
   },
   data(){
+    const sort = this.$props.sort;
+    const order = this.$props.asc ? 1 : -1;
     return {
-      sortCol: 'name',
-      asc: 1,
-      sortedFiles: this.files.slice()
+      sortCol: sort,
+      order: order,
+      sortedFiles: this.getSortedArray(sort, order)
     }
   },
   watch: {
     files: function(files){
-      this.$data.sortedFiles = files.slice();
-      console.log(this.$data.sortedFiles);
+      this.$data.sortedFiles = this.getSortedArray(this.$data.sortCol, this.$data.order);
     }
   }
 }
@@ -140,6 +162,7 @@ export default {
   width: 100%;
 }
 
-.sortIcon {
+.highlight {
+  background-color: rgba( $primaryColorLight, .3);
 }
 </style>

@@ -23,7 +23,7 @@ export default {
       if(file.type == 'directory'){
         return '-';
       }
-      return file.size;
+      return file.size.toLocaleString();
     },
     formatDate(mtime){
       return moment(mtime).utcOffset(9).format('YYYY/MM/DD HH:mm:ss.SSS');
@@ -57,7 +57,6 @@ export default {
 
 .container {
   height: 30px;
-  line-height: 30px;
   align-items: center;
   &:hover {
     transition: background-color .3s;
@@ -65,13 +64,19 @@ export default {
   }
   cursor: pointer;
   > * {
-    padding: 2px 4px;
+    box-sizing: border-box;
+    padding-left: 4px;
+    padding-right: 4px;
     white-space: nowrap;
   }
 }
 
 .name {
   padding-left: 12px;
+}
+
+.size {
+  text-align: right;
 }
 </style>
 

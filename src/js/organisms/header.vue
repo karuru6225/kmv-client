@@ -59,14 +59,17 @@ export default {
     },
     backTo: function(e){
       e.preventDefault();
+      this.$emit('changeDirectory');
       this.$router.go(-1);
     },
     parentDir: function(e){
       e.preventDefault();
+      this.$emit('changeDirectory');
       this.$router.push(PublicPath + 'directory/' + this.parentId);
     },
     home: function(e){
       e.preventDefault();
+      this.$emit('changeDirectory');
       this.$router.push(PublicPath);
     },
     logout: function(e) {

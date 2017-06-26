@@ -129,6 +129,7 @@ let webpackConfig = {
     hot: true,
     publicPath: config.publicPath,
     contentBase: config.dstDir,
+    headers: { "Access-Control-Allow-Origin": "*" },
     historyApiFallback: {
       index: config.publicPath
     }

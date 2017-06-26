@@ -83,7 +83,7 @@ export default {
       if(loaderTimer){
         clearTimeout(loaderTimer);
       }
-      const w = Math.floor(window.innerWidth / 2);
+      const w = window.innerWidth;
       const h = window.innerHeight;
       const loader = () => {
         let loading = 0;
@@ -107,20 +107,37 @@ export default {
           const base = axios.defaults.baseURL;
           const path = `zip/${state.id}/${fid}/resize/${w}/${h}`;
 
-          const token = axios.defaults.headers.common['x-kmv-token'];
-          delete axios.defaults.headers.common['x-kmv-token'];
+          // CORSのpreflightアクセスを防ぐために一時的にカスタムヘッダーを無効にする。
+          // サーバー側で画像リサイズ用のURLのときの、preflightアクセスに対応した
+          //const token = axios.defaults.headers.common['x-kmv-token'];
+          //delete axios.defaults.headers.common['x-kmv-token'];
           axios.get(path, {
             responseType: 'blob',
-            params: {
+            /*params: {
               token: token
-            }
+            }*/
           }).then(res => {
-            commit('loadedImage', {
-              fid,
-              content: res.data
+            return new Promise( function(resolve, reject) {
+              const url = window.URL || window.webkitURL;
+              if(url){
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject();
+                img.src = url.createObjectURL(res.data);
+                return img;
+              }else{
+                return false;
+              }
             });
+          }).then(img => {
+            if(img){
+              commit('loadedImage', {
+                fid,
+                content: img
+              });
+            }
           });
-          axios.defaults.headers.common['x-kmv-token'] = token;
+          //axios.defaults.headers.common['x-kmv-token'] = token;
 
           commit('startedLoadImage', {
             fid

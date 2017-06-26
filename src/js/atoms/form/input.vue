@@ -2,9 +2,11 @@
   <div>
     <input v-if="type == 'text'"
       :class="$style.input" :name="name"
+      @keyup="$emit('keyup', $event)"
       type="text" v-model="value"/>
     <input v-if="type == 'password'"
       :class="$style.input" :name="name"
+      @keyup="$emit('keyup', $event)"
       type="password" v-model="value"/>
   </div>
 </template>
@@ -12,11 +14,11 @@
 <script>
 
 export default {
-  props: ['type', 'name'],
-  data() {
+  props: ['type', 'name', 'defaultValue'],
+  data(){
     return {
-      value: ''
-    };
+      value: this.defaultValue
+    }
   }
 }
 </script>
