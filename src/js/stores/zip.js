@@ -49,8 +49,8 @@ export default {
     startedLoadImage(state, payload){
       Vue.set(state.imageStatuses, +payload.fid, LOADING);
     },
-    loadedImage(state, payload){
-      Vue.set(state.imageStatuses, +payload.fid, LOADED);
+    setImage(state, payload){
+      Vue.set(state.imageStatuses, +payload.fid, payload.status);
       state.images[+payload.fid] = payload.content;
       let loaded = 0;
       for(let i = 0; i < state.fileCount; i++){
@@ -59,7 +59,7 @@ export default {
         }
       }
       state.loaded = loaded;
-    }
+    },
   },
   actions: {
     files({commit}, payload){
@@ -126,16 +126,28 @@ export default {
                 img.src = url.createObjectURL(res.data);
                 return img;
               }else{
+                commit('setImage', {
+                  fid,
+                  content: null,
+                  status: BEFORE_LOAD
+                });
                 return false;
               }
             });
           }).then(img => {
             if(img){
-              commit('loadedImage', {
+              commit('setImage', {
                 fid,
-                content: img
+                content: img,
+                status: LOADED
               });
             }
+          }).catch(img => {
+            commit('setImage', {
+              fid,
+              content: null,
+              status: BEFORE_LOAD
+            });
           });
           //axios.defaults.headers.common['x-kmv-token'] = token;
 

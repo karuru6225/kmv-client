@@ -3,7 +3,7 @@
     <common-header
       :back=true
       :name="$store.state.zip.name"
-      :class="$data.headerClass"
+      :class="$data.showHeader ? $style.header : $style.headerHidden"
     />
     <div :class="$style.main" ref="imageArea" @click="e => click(e)">
       <template v-for="img in $data.images">
@@ -91,9 +91,12 @@ export default {
       this.pageUpdate();
     },
     onePage(){
-      this.$data.currentPage =  this.saturation(this.$data.currentPage - 1);
+      this.$data.currentPage =  this.saturation(this.$data.currentPage + 1);
       this.$store.dispatch('zip/startLoadImages', {offset: this.$data.currentPage});
       this.pageUpdate();
+    },
+    toggleFirst(){
+      this.$data.leftFirst = !this.$data.leftFirst;
     },
     pageUpdate(){
       this.$data.leftFlip = this.$data.rightFlip = false;
@@ -101,38 +104,63 @@ export default {
       this.$data.spread = false;
       this.setImage();
     },
+    leftAction(){
+      if(this.$data.leftFirst){
+        this.prev();
+      }else{
+        this.next();
+      }
+    },
+    rightAction(){
+      if(this.$data.leftFirst){
+        this.next();
+      }else{
+        this.prev();
+      }
+    },
+    centerTopAction(){
+      this.toggleFirst();
+    },
+    centerMiddleAction(){
+      this.$data.showHeader = !this.$data.showHeader;
+    },
+    centerBottomAction(){
+      this.onePage();
+    },
     click(e) {
       const wWidth = $(window).width();
-      if(wWidth/2 < e.clientX){
-        if(this.$data.leftFirst){
-          this.next();
-        }else{
-          this.prev();
-        }
-      }else{
-        if(this.$data.leftFirst){
-          this.prev();
-        }else{
-          this.next();
-        }
+      const wHeight = $(window).height();
+      if(e.clientX < wWidth/3){
+        this.leftAction();
+      }else if(wWidth*2/3 < e.clientX){
+        this.rightAction();
+      }else if(e.clientY < wHeight/3){
+        this.centerTopAction();
+      }else if(wHeight/3 <= e.clientY && e.clientY < wHeight*2/3){
+        this.centerMiddleAction();
+      }else if(wHeight*2/3 <= e.clientY){
+        this.centerBottomAction();
       }
     },
     keyup(e) {
       e.preventDefault();
       switch(e.keyCode){
         case 37://left
-          this.next();
+          this.leftAction();
           break;
         case 39://right
-          this.prev();
+          this.rightAction();
           break;
         case 38://up
-          this.$data.leftFirst = !this.$data.leftFirst;
+          this.centerTopAction();
           break;
         case 40://down
-          this.onePage();
+          this.centerBottomAction();
           break;
+        case 32://space
+          this.centerMiddleAction();
         default:
+          console.log('keyCode: ' + e.keyCode);
           return;
       }
     },
@@ -186,9 +214,9 @@ export default {
     },
     mousemove(e) {
       if(e.clientY < 44) {
-        this.$data.headerClass = this.$style.header;
+        this.$data.showHeader = true;
       }else{
-        this.$data.headerClass = this.$style.headerHidden;
+        this.$data.showHeader = false;
       }
     }
   },
@@ -196,7 +224,7 @@ export default {
     return {
       currentPage: +(this.page||0),
       leftFirst: false,
-      headerClass: this.$style.headerHidden,
+      showHeader: false,
       leftFlip: null,
       rightFlip: null,
       spread: false,
