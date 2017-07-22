@@ -19,6 +19,15 @@ export default {
       }
       router.push(PublicPath);
     },
+    restoreToken(state) {
+      console.log('restoring');
+      let token = '';
+      if(localStorage){
+        token = localStorage.getItem('kmv-token');
+      }
+      state.token = token;
+      axios.defaults.headers.common['x-kmv-token'] = token;
+    },
     logout(state) {
       axios.defaults.headers.common['x-kmv-token'] = '';
       router.push(PublicPath + 'login');

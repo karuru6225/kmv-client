@@ -270,7 +270,7 @@ export default {
 .main {
   display: flex;
   margin: 0 auto;
-  height: calc(100vh - 2px);
+  height: calc(100vh - 4px);
   justify-content: center;
   align-content: flex-start;
 }
@@ -278,7 +278,7 @@ export default {
 .loadStatus {
   display: flex;
   width: 100vw;
-  height: 2px;
+  height: 4px;
   position: absolute;
   bottom: 0;
   > * {
@@ -291,15 +291,15 @@ export default {
 }
 
 .current {
-  background-color: cyan;
+  background-color: $accentColor;
 }
 
 .loaded {
-  background-color: green;
+  background-color: $primaryColorDark;
 }
 
 .loading {
-  background-color: red;
+  //background-color: red;
 }
 
 .flipImage {

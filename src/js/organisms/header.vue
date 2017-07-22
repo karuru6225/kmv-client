@@ -26,7 +26,7 @@
         <list-button color="primary" icon='star-o'> </list-button>
         {{name}}
       </primary-label>
-      <slot> </slot>
+      <slot></slot>
       <vert-div :class="$style.divider"/>
       <primary-link
         @click="logout($event)"
@@ -120,10 +120,16 @@ export default {
 .currentName {
   line-height: $headerHeight;
   flex-grow: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .logout {
   flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 120px;
+  white-space: nowrap;
   line-height: $headerHeight - 8px;
   box-sizing: border-box;
   margin: 4px 0;

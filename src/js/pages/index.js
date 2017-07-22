@@ -19,9 +19,7 @@ const store = new Vuex.Store({
   }
 });
 
-if(localStorage){
-  axios.defaults.headers.common['x-kmv-token'] = localStorage.getItem('kmv-token');
-}
+store.commit('auth/restoreToken');
 
 sync(store, router);
 
