@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import dir from 'stores/dir.js';
 import zip from 'stores/zip.js';
+import m3u8 from 'stores/m3u8.js';
 import auth from 'stores/auth.js';
 import { sync } from 'vuex-router-sync';
 import '../../css/base.scss';
@@ -14,6 +15,7 @@ const store = new Vuex.Store({
     dir,
     auth,
     zip,
+    m3u8
   }
 });
 
