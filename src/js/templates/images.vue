@@ -31,7 +31,7 @@ export default {
     VertDiv,
     ListButton,
   },
-  props: ['id', 'page'],
+  props: ['id'],
   methods: {
     dblclick(pos){
       return;
@@ -222,7 +222,7 @@ export default {
   },
   data() {
     return {
-      currentPage: +(this.page||0),
+      currentPage: +(this.$route.query.page)||0,
       leftFirst: false,
       showHeader: false,
       leftFlip: null,
@@ -246,6 +246,8 @@ export default {
     window.addEventListener('mousemove', this.mousemove.bind(this));
   },
   mounted: function() {
+    console.log(this.$route);
+    console.log(this.$router);
   },
   destroyed: function() {
     window.removeEventListener('keyup', this.keyup.bind(this));

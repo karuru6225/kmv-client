@@ -36,7 +36,7 @@ export default {
     },
     updateEntries(state, payload) {
       state.id = payload.data.id;
-      state.fileCount = payload.data.fileCount;
+      state.fileCount = +payload.data.fileCount;
       state.parentId = payload.data.parentId;
       state.name = payload.data.name;
       state.loadedImages = [];
@@ -63,7 +63,7 @@ export default {
   },
   actions: {
     files({commit}, payload){
-      axios.get('zip/' + payload.id)
+      axios.get(`${payload.type}/${payload.id}`)
         .then( res => {
           commit('updateEntries', {
             data: res.data,
@@ -105,7 +105,7 @@ export default {
             break;
           }
           const base = axios.defaults.baseURL;
-          const path = `zip/${state.id}/${fid}/resize/${w}/${h}`;
+          const path = `${payload.type}/${payload.id}/${fid}/resize/${w}/${h}`;
 
           // CORSのpreflightアクセスを防ぐために一時的にカスタムヘッダーを無効にする。
           // サーバー側で画像リサイズ用のURLのときの、preflightアクセスに対応した

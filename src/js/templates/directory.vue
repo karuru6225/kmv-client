@@ -5,9 +5,10 @@
        :name="$store.state.dir.current.name"
        @changeDirectory="changeDirectory"
     >
+      <list-button color="primary" icon='refresh' @click="refresh" :disabled="!id || id == ''"></list-button>
       <vert-div :class="$style.divider"/>
-        <input-text type="text" ref="search" :class="$style.searchInput" v-show="$data.search" @keyup="filterList($event.target.value)" :defualtValue="$data.searchWord"/>
-        <list-button color="primary" icon='search' @click="toggleSearch"></list-button>
+      <input-text type="text" ref="search" :class="$style.searchInput" v-show="$data.search" @keyup="filterList($event.target.value)" :defualtValue="$data.searchWord"/>
+      <list-button color="primary" icon='search' @click="toggleSearch"></list-button>
       <vert-div :class="$style.divider"/>
       <div :class="$style.listButtons">
         <list-button color="primary" icon='list'> </list-button>
@@ -63,6 +64,9 @@ export default {
     changeDirectory: function(){
       this.$data.search = false;
       this.$data.searchWord = '';
+    },
+    refresh: function() {
+      this.$store.dispatch('dir/refresh', { id: this.id });
     },
     fetchData: function(force) {
       if(this.$store.state.dir.current.id != this.$route.params.id || force){

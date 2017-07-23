@@ -1,21 +1,22 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import dir from 'stores/dir.js';
-import zip from 'stores/zip.js';
-import m3u8 from 'stores/m3u8.js';
-import auth from 'stores/auth.js';
 import { sync } from 'vuex-router-sync';
 import '../../css/base.scss';
 import 'img/favicon.ico';
 import router from 'router.js';
 import axios from 'utils/ajax.js';
 
+import dir from 'stores/dir.js';
+import book from 'stores/book.js';
+import movie from 'stores/movie.js';
+import auth from 'stores/auth.js';
+
 const store = new Vuex.Store({
   modules: {
     dir,
     auth,
-    zip,
-    m3u8
+    book,
+    movie
   }
 });
 

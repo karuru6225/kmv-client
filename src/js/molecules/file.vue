@@ -9,6 +9,7 @@
 <script>
 import Icon from 'atoms/icon/font-base.vue';
 import moment from 'moment';
+import {extComponentMap as map} from 'utils/consts.js';
 
 export default {
   components: {
@@ -17,7 +18,16 @@ export default {
   props: ['file'],
   methods: {
     click(){
-      this.$router.push(`${PublicPath}${this.file.type}/${this.file.id}`);
+      let url = `${PublicPath}${map['any']}/${this.file.type}/${this.file.id}`;
+      if(this.file.type == 'directory'){
+        url = `${PublicPath}directory/${this.file.id}`;
+      }else{
+        const setting = map[this.file.type];
+        if(setting){
+          url = `${PublicPath}${setting.path}/${this.file.type}/${this.file.id}`;
+        }
+      }
+      this.$router.push(url);
     },
     getSize(file) {
       if(file.type == 'directory'){

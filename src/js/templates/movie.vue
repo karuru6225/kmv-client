@@ -2,13 +2,13 @@
   <div class="page">
     <common-header
       :back=true
-      :name="$store.state.m3u8.metadata.name"
+      :name="$store.state.movie.metadata.name"
       :class="$data.headerClass"
     >
       <vert-div />
       <i-button :size="28" :class="$data.sizeButtonClass" @click="toggleSize"/>
     </common-header>
-    <div :class="$style.mainArea">
+    <div :class="$style.mainArea" @wheel="changeVolume">
       <video ref="video" :class="$data.videoClass" @click="togglePlay"/>
       <div :class="$style.seekContainer" @click="e => seek(e)" ref="seekbar">
         <template v-for="loaded in $data.buffered">
@@ -20,6 +20,10 @@
         <div :class="$style.seekPlayed" :style="{
           width: ($data.currentTime / $data.duration)*100 + '%'
         }"/>
+      </div>
+      <div :class="$style.controller">
+        <span>{{formatTime($data.currentTime)}} / {{formatTime($data.duration)}}</span>
+        <span>vol: {{$data.volume}}</span>
       </div>
     </div>
   </div>
@@ -41,6 +45,7 @@ const sizeIds = [
 ];
 
 let seekTimer;
+let volumeThrottle=0;
 
 export default {
   components: {
@@ -48,8 +53,20 @@ export default {
     VertDiv,
     IButton,
   },
-  props: ['id'],
+  props: ['id', 'type'],
   methods: {
+    formatTime(s) {
+      const _s = Math.round(s);
+      let fh = '';
+      let fm = '';
+      let fs = '';
+      fm = ('0' + Math.floor( (_s % 3600) / 60 ) + ':').substr(-3);
+      fs = ('0' + (_s % 60)).substr(-2);
+      if(_s >= 3600){
+        fh = ('0' + Math.floor(_s / 3600) + ':').substr(-3);
+      }
+      return fh + fm + fs;
+    },
     mousemove(e) {
       if(e.clientY < 44) {
         this.$data.headerClass = this.$style.header;
@@ -71,6 +88,19 @@ export default {
         v.pause();
       }
     },
+    changeVolume(e) {
+      const v = this.$refs.video;
+      if(Date.now() - volumeThrottle > 250){
+        const prev = Math.round(v.volume * 10);
+        if(e.deltaY > 0) {
+          v.volume = Math.min(10, prev + 1) / 10;
+        }else{
+          v.volume = Math.max(0, prev - 1) / 10;
+        }
+        volumeThrottle = Date.now();
+      }
+      this.$data.volume = v.volume;
+    },
     getSizeButtonClass(idx) {
       const sizeButtonClasses = sizeIds.map(suffix => {
         return this.$style['sizeButton' + suffix];
@@ -90,7 +120,7 @@ export default {
       ];
     },
     fetchData: function() {
-      this.$store.dispatch('m3u8/meta', {
+      this.$store.dispatch('movie/meta', {
         id: this.id||''
       });
     },
@@ -122,12 +152,15 @@ export default {
     return {
       headerClass: this.$style.headerHidden,
       source: ApiEntry + `file/${this.$props.id}/direct?open&token=${this.$store.state.auth.token}`,
+      //source: ApiEntry + `file/${this.$props.id}/direct?open`,
       videoSizeIdx: initialIdx,
       sizeButtonClass: this.getSizeButtonClass(initialIdx),
       videoClass: this.getVideoClass(initialIdx),
       buffered: [],
       currentTime: 0,
-      duration: 1
+      duration: 1,
+      volume: 1,
+      hls: null
     };
   },
   computed: mapState({
@@ -142,10 +175,12 @@ export default {
     const hls = new Hls();
     hls.loadSource(this.$data.source);
     hls.attachMedia(this.$refs.video);
+    this.$data.hls = hls;
     seekTimer = setInterval(this.updateSeek.bind(this), 500);
   },
   beforeDestroy: function() {
     window.removeEventListener('mousemove', this.mousemove.bind(this));
+    this.$data.hls.destroy();
     clearInterval(seekTimer);
   }
 }
@@ -186,9 +221,10 @@ export default {
 }
 
 $seekHeight: 4px;
+$controllerHeight: 16px;
 .video {
   max-width: 100vw;
-  max-height: calc(100vh - $seekHeight);
+  max-height: calc(#{'100vh - ' + ($seekHeight + $controllerHeight) });
   display: block;
   margin: 0 auto;
   &640 {
@@ -210,6 +246,7 @@ $seekHeight: 4px;
     position: relative;
     width: 100vw;
     cursor: col-resize;
+    background-color: $primaryColorLight;
   }
   &Played {
     height: 100%;
@@ -221,5 +258,9 @@ $seekHeight: 4px;
     height: $seekHeight;
     position: absolute;
   }
+}
+
+.controller {
+  display: flex;
 }
 </style>
