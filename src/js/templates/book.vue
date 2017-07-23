@@ -12,7 +12,7 @@
     </div>
     <div :class="getStatusBarClass()">
       <template v-for="(stat, idx) in $store.state.book.imageStatuses">
-        <div :class="getLoadStatClass(stat, idx)"></div>
+        <div :class="getLoadStatClass(stat, idx)" @click="setCurrentPage(idx)"></div>
       </template>
     </div>
   </div>
@@ -74,6 +74,11 @@ export default {
     saturation(page){
       return Math.max(Math.min(page, this.fileCount - 1), 0);
     },
+    setCurrentPage(page){
+      console.log('setCurrentPage: ' + page);
+      this.$data.currentPage =  this.saturation(page);
+      this.pageUpdate();
+    },
     prev(){
       let delta = 2;
       const nextBase = this.saturation(this.$data.currentPage - 2);
@@ -87,30 +92,27 @@ export default {
       if(img1.width > img1.height || img2.width > img2.height){
         delta = 1;
       }
-      this.$data.currentPage =  this.saturation(this.$data.currentPage - delta);
-      this.pageUpdate();
+      this.setCurrentPage(this.$data.currentPage - delta);
     },
     next(){
       let delta = 2;
       if(this.$data.spread){
         delta = 1;
       }
-      this.$data.currentPage =  this.saturation(this.$data.currentPage + delta);
+      this.setCurrentPage(this.$data.currentPage + delta);
       this.$store.dispatch('book/startLoadImages', {
         id: this.id,
         type: this.type,
         offset: this.$data.currentPage
       });
-      this.pageUpdate();
     },
     onePage(){
-      this.$data.currentPage =  this.saturation(this.$data.currentPage + 1);
+      this.setCurrentPage(this.$data.currentPage + 1);
       this.$store.dispatch('book/startLoadImages', {
         id: this.id,
         type: this.type,
         offset: this.$data.currentPage
       });
-      this.pageUpdate();
     },
     toggleFirst(){
       this.$data.leftFirst = !this.$data.leftFirst;
@@ -309,6 +311,10 @@ export default {
   > * {
     flex-grow: 1;
   }
+  &:hover {
+    transition: height .3s;
+    height: 16px;
+  }
   &Reverse {
     @extend .loadStatus;
     flex-direction: row-reverse;
@@ -316,14 +322,17 @@ export default {
 }
 
 .current {
+  cursor: col-resize;
   background-color: $accentColor;
 }
 
 .loaded {
+  cursor: col-resize;
   background-color: $primaryColorDark;
 }
 
 .loading {
+  cursor: col-resize;
   background-color: $primaryColorLight;
 }
 

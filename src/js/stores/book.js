@@ -83,29 +83,29 @@ export default {
       if(loaderTimer){
         clearTimeout(loaderTimer);
       }
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const loader = () => {
+      const loader = function(commit, id, type, offset) {
         let loading = 0;
         let i = 0;
         if(!state.fileCount){
-          loaderTimer = setTimeout(loader, 500);
+          loaderTimer = setTimeout(loader.bind(null, commit, id, type, offset), 500);
           return;
         }
         for(i = 0; i < state.fileCount; i++){
-          const fid = (+payload.offset + i + state.fileCount) % state.fileCount;
+          const fid = (offset + i + state.fileCount) % state.fileCount;
           if( state.imageStatuses[fid] == LOADING ){
             loading++;
             continue;
           }else if( state.imageStatuses[fid] == LOADED ){
             continue;
           }
-          if(loading > 10){
-            loaderTimer = setTimeout(loader, 500);
+          if(loading > 3){
+            loaderTimer = setTimeout(loader.bind(null, commit, id, type, offset), 500);
             break;
           }
           const base = axios.defaults.baseURL;
-          const path = `${payload.type}/${payload.id}/${fid}/resize/${w}/${h}`;
+          const w = window.innerWidth * 2;
+          const h = window.innerHeight * 2;
+          const path = `${type}/${id}/${fid}/resize/${w}/${h}`;
 
           // CORSのpreflightアクセスを防ぐために一時的にカスタムヘッダーを無効にする。
           // サーバー側で画像リサイズ用のURLのときの、preflightアクセスに対応した
@@ -157,7 +157,7 @@ export default {
           loading++;
         }
       };
-      loaderTimer = setTimeout(loader, 0);
+      loaderTimer = setTimeout(loader.bind(null, commit, payload.id, payload.type, +payload.offset), 0);
     }
   }
 };

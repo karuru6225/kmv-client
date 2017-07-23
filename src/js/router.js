@@ -16,6 +16,8 @@ Object.values(extComponentMap).forEach( setting => {
 
 const routes = [
   { path: PublicPath,  component: Directory },
+  { path: PublicPath + 'login',  component: LoginPage },
+  { path: PublicPath + 'directory/', component: Directory},
   { path: PublicPath + 'directory/:id', component: Directory, props: true},
 ].concat( Object.keys(pathComponentMap).map( path => {
   return {

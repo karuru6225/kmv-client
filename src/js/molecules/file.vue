@@ -18,10 +18,10 @@ export default {
   props: ['file'],
   methods: {
     click(){
-      let url = `${PublicPath}${map['any']}/${this.file.type}/${this.file.id}`;
+      let url = `${PublicPath}${map['any'].path}/${this.file.type}/${this.file.id}`;
       if(this.file.type == 'directory'){
         url = `${PublicPath}directory/${this.file.id}`;
-      }else{
+      }else if(map[this.file.type]){
         const setting = map[this.file.type];
         if(setting){
           url = `${PublicPath}${setting.path}/${this.file.type}/${this.file.id}`;
