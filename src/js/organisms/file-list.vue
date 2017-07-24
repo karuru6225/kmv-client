@@ -1,19 +1,19 @@
 <template>
-  <div :class="$style.container">
+  <div :class="$style.container" ref="container">
     <table :class="$style.fileList">
       <thead>
         <tr>
-          <th :class="[$style.theadTh, $style.name]" @click="sortFiles('name')">
+          <th :class="[$style.theadTh, $style.name]" @click="sortFiles('name')" ref="name">
             <span>名前</span>
             <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'name'" />
             <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'name'" />
           </th>
-          <th :class="$style.theadTh" @click="sortFiles('mtime')">
+          <th :class="$style.theadTh" @click="sortFiles('mtime')" ref="mtime">
             <span>変更日</span>
             <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'mtime'" />
             <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'mtime'" />
           </th>
-          <th :class="$style.theadTh" @click="sortFiles('size')">
+          <th :class="$style.theadTh" @click="sortFiles('size')" ref="size">
             <span>サイズ</span>
             <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'size'" />
             <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'size'" />
@@ -21,10 +21,35 @@
         </tr>
       </thead>
       <tbody>
-        <template v-for="file in $data.sortedFiles">
-          <file :file="file" :class="file.id == highlight ? $style.highlight : ''"/>
+        <template v-for="(file, idx) in $data.sortedFiles">
+          <file
+            :key="idx"
+            :file="file"
+            :class="getFileClass(idx, file.id)"
+          />
         </template>
       </tbody>
+    </table>
+    <table :class="$style.fixedHeader">
+      <thead>
+        <tr>
+          <th :class="[$style.theadTh, $style.name]" @click="sortFiles('name')" ref="nameFixed">
+            <span>名前</span>
+            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'name'" />
+            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'name'" />
+          </th>
+          <th :class="$style.theadTh" @click="sortFiles('mtime')" ref="mtimeFixed">
+            <span>変更日</span>
+            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'mtime'" />
+            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'mtime'" />
+          </th>
+          <th :class="$style.theadTh" @click="sortFiles('size')" ref="sizeFixed">
+            <span>サイズ</span>
+            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'size'" />
+            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'size'" />
+          </th>
+        </tr>
+      </thead>
     </table>
   </div>
 </template>
@@ -33,6 +58,7 @@
 import Icon from 'atoms/icon/font-base.vue';
 import File from 'molecules/file.vue';
 import naturalCompare from 'natural-compare';
+import $ from 'jquery';
 
 export default {
   components: {
@@ -58,6 +84,13 @@ export default {
     }
   },
   methods: {
+    getFileClass(idx, id){
+      const classes = [];
+      if(id == this.highlight){
+        classes.push(this.$style.highlight);
+      }
+      return classes;
+    },
     sortFiles(type){
       if(this.$data.sortCol == type){
         this.$data.order *= -1;
@@ -109,21 +142,36 @@ export default {
     },
     getSortedArray(sort, order){
       return this.files.slice().sort( this.getSortFunc(sort, order) );
+    },
+    resize(){
+      const cols = [ 'name', 'mtime', 'size' ];
+      cols.forEach( c => {
+        $(this.$refs[c+'Fixed']).width( $(this.$refs[c]).width() );
+      });
     }
   },
   data(){
     const sort = this.$props.sort;
     const order = this.$props.asc ? 1 : -1;
+    const sortedFiles = this.getSortedArray(sort, order);
     return {
       sortCol: sort,
       order: order,
-      sortedFiles: this.getSortedArray(sort, order)
-    }
+      sortedFiles,
+    };
   },
   watch: {
     files: function(files){
       this.$data.sortedFiles = this.getSortedArray(this.$data.sortCol, this.$data.order);
+      setTimeout( this.resize.bind(this), 100);
     }
+  },
+  mounted: function() {
+    $(window).on('resize', this.resize.bind(this) );
+    this.resize();
+  },
+  beforeDestroy: function() {
+    $(window).off('resize', this.resize.bind(this) );
   }
 }
 
@@ -132,7 +180,8 @@ export default {
 @import "css/_settings.scss";
 
 .container {
-  //padding: 16px;
+  max-height: calc(#{'100vh - ' + $headerHeight});
+  overflow: scroll;
 }
 
 .fileList {
@@ -147,6 +196,7 @@ export default {
   box-sizing: border-box;
   border-bottom: solid 1px $dividerColor;
   white-space: nowrap;
+  background-color: $bgColor;
   > * {
     display: inline-block;
     padding-top: 2px;
@@ -164,5 +214,12 @@ export default {
 
 .highlight {
   background-color: rgba( $primaryColorLight, .3);
+}
+
+.fixedHeader {
+  position: fixed;
+  top: $headerHeight;
+  table-layout: fixed;
+  border-collapse: collapse;
 }
 </style>
