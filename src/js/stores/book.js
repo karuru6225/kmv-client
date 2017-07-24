@@ -7,6 +7,7 @@ Vue.use(Vuex);
 //export const mutationTypes = { };
 
 let loaderTimer = null;
+const loaderInterval = 100;
 
 const BEFORE_LOAD = 0;
 const LOADING = 1;
@@ -87,7 +88,7 @@ export default {
         let loading = 0;
         let i = 0;
         if(!state.fileCount){
-          loaderTimer = setTimeout(loader.bind(null, commit, id, type, offset), 500);
+          loaderTimer = setTimeout(loader.bind(null, commit, id, type, offset), loaderInterval);
           return;
         }
         for(i = 0; i < state.fileCount; i++){
@@ -99,13 +100,14 @@ export default {
             continue;
           }
           if(loading > 3){
-            loaderTimer = setTimeout(loader.bind(null, commit, id, type, offset), 500);
+            loaderTimer = setTimeout(loader.bind(null, commit, id, type, offset), loaderInterval);
             break;
           }
           const base = axios.defaults.baseURL;
-          const w = window.innerWidth * 2;
-          const h = window.innerHeight * 2;
-          const path = `${type}/${id}/${fid}/resize/${w}/${h}`;
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          //const path = `${type}/${id}/${fid}/resize/${w}/${h}`;
+          const path = `${type}/${id}/${fid}`;
 
           // CORSのpreflightアクセスを防ぐために一時的にカスタムヘッダーを無効にする。
           // サーバー側で画像リサイズ用のURLのときの、preflightアクセスに対応した
