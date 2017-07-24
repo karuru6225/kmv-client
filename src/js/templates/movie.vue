@@ -10,7 +10,7 @@
     </common-header>
     <div :class="$style.mainArea" @wheel="changeVolume">
       <video ref="video" :class="$data.videoClass" @click="togglePlay"/>
-      <div :class="$style.seekContainer" @click="e => seek(e)" ref="seekbar">
+      <div :class="$style.seekContainer" @click="e => seek(e)" ref="seekbar" @mousemove="updateHoverTime" @mouseout="hideHoverTime">
         <template v-for="loaded in $data.buffered">
           <div :class="$style.seekLoaded" :style="{
             left: (loaded.start*100) + '%',
@@ -23,7 +23,7 @@
       </div>
       <div :class="$style.controller">
         <span>{{formatTime($data.currentTime)}} / {{formatTime($data.duration)}}</span>
-        <span>vol: {{$data.volume}}</span>
+        <span>vol: {{$data.volume}} {{$data.hoverTime}}</span>
       </div>
     </div>
   </div>
@@ -89,16 +89,19 @@ export default {
       }
     },
     changeVolume(e) {
-      const v = this.$refs.video;
       if(Date.now() - volumeThrottle > 250){
-        const prev = Math.round(v.volume * 10);
+        const v = this.$refs.video;
         if(e.deltaY > 0) {
-          v.volume = Math.min(10, prev + 1) / 10;
+          this.setVolume(v.volume + 0.1);
         }else{
-          v.volume = Math.max(0, prev - 1) / 10;
+          this.setVolume(v.volume - 0.1);
         }
         volumeThrottle = Date.now();
       }
+    },
+    setVolume(vol){
+      const v = this.$refs.video;
+      v.volume = Math.max(0, Math.min(10, Math.round(vol*10))) / 10;
       this.$data.volume = v.volume;
     },
     getSizeButtonClass(idx) {
@@ -137,12 +140,19 @@ export default {
       this.$data.currentTime = v.currentTime || 0;
       this.$data.duration = v.duration;
     },
+    updateHoverTime: function(e){
+      const v = this.$refs.video;
+      const $seekbar = $(this.$refs.seekbar);
+      const seekTime = v.duration * e.clientX / $seekbar.width();
+      this.$data.hoverTime = this.formatTime(seekTime);
+    },
+    hideHoverTime: function(){
+      this.$data.hoverTime = '';
+    },
     seek: function(e){
       const v = this.$refs.video;
       const $seekbar = $(this.$refs.seekbar);
       const seekTime = v.duration * e.clientX / $seekbar.width();
-      console.log(e);
-      console.log(seekTime + '/' + v.duration);
       v.currentTime = seekTime;
       this.$data.currentTime = seekTime;
     }
@@ -160,12 +170,9 @@ export default {
       currentTime: 0,
       duration: 1,
       volume: 1,
-      hls: null
+      hls: null,
+      hoverTime: ''
     };
-  },
-  computed: mapState({
-  }),
-  watch: {
   },
   created: function() {
     this.fetchData();
@@ -176,6 +183,7 @@ export default {
     hls.loadSource(this.$data.source);
     hls.attachMedia(this.$refs.video);
     this.$data.hls = hls;
+    this.setVolume(0.2);
     seekTimer = setInterval(this.updateSeek.bind(this), 500);
   },
   beforeDestroy: function() {
@@ -247,6 +255,11 @@ $controllerHeight: 16px;
     width: 100vw;
     cursor: col-resize;
     background-color: $primaryColorLight;
+    transition: height 1s;
+    &:hover {
+      transition: height .2s;
+      height: 16px;
+    }
   }
   &Played {
     height: 100%;
@@ -254,13 +267,16 @@ $controllerHeight: 16px;
     position: absolute;
   }
   &Loaded {
+    height: 100%;
     background-color: $primaryColorDark;
-    height: $seekHeight;
     position: absolute;
   }
 }
 
 .controller {
   display: flex;
+  > * {
+    margin-left: 8px;
+  }
 }
 </style>

@@ -49,7 +49,7 @@ export default {
       }
     },
     getLoadStatClass(stat, idx) {
-      if(idx == this.$data.currentPage){
+      if(idx <= this.$data.currentPage){
         return this.$style.current;
       }
       if(stat == 2){
@@ -311,8 +311,8 @@ export default {
   > * {
     flex-grow: 1;
   }
+  transition: height .3s;
   &:hover {
-    transition: height .3s;
     height: 16px;
   }
   &Reverse {
