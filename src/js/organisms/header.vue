@@ -22,9 +22,24 @@
         <icon name="home" />
       </primary-link>
       <vert-div :class="$style.divider"/>
+      <primary-link
+        @click="toggleBookmark"
+        :class="$style.bookmark"
+      >
+        <icon name="bookmark" />
+      </primary-link>
+      <vert-div :class="$style.divider"/>
       <primary-label :class="$style.currentName">
-        <list-button color="primary" icon='star-o'> </list-button>
-        {{name}}
+        <list-button color="primary"
+          v-show="!hideStar"
+          :class="$style.currentNameStar"
+          :icon="starIcon()"
+          :disabled="!$store.state.bookmark.selected || $store.state.dir.current.id == ''"
+          @click="toggleStar"
+        />
+        <span :class="$style.currentNameText">
+          {{file.name}}
+        </span>
       </primary-label>
       <slot></slot>
       <vert-div :class="$style.divider"/>
@@ -39,9 +54,9 @@
 </template>
 
 <script>
-import Icon from 'atoms/icon/font-base.vue';
 import VertDiv from 'atoms/block/vertical-divider.vue';
 import PrimaryLink from 'atoms/text/link-primary16-regular.vue';
+import Icon from 'atoms/icon/font-base.vue';
 import PrimaryLabel from 'atoms/text/label-primary16-regular.vue';
 import ListButton from 'atoms/button/iconfont-base.vue';
 
@@ -53,9 +68,27 @@ export default {
     PrimaryLabel,
     ListButton,
   },
-  props: ['id', 'parentId', 'name', 'back'],
+  props: ['back', 'file', 'hideStar'],
   methods: {
-    toggleSearch(){
+    isBookmarked: function(){
+      const s = this.$store.state.bookmark.selected;
+      return s && s.files.findIndex(f => {
+        return f.id == this.file.id
+      }) != -1;
+    },
+    toggleStar: function(){
+      if(this.isBookmarked()){
+        this.$store.dispatch('bookmark/remove', this.file.id);
+        return;
+      }
+      this.$store.dispatch('bookmark/add', this.file.id);
+    },
+    starIcon: function(){
+      const s = this.$store.state.bookmark.selected;
+      if(this.isBookmarked()){
+        return 'star';
+      }
+      return 'star-o';
     },
     backTo: function(e){
       e.preventDefault();
@@ -65,12 +98,16 @@ export default {
     parentDir: function(e){
       e.preventDefault();
       this.$emit('changeDirectory');
-      this.$router.push(PublicPath + 'directory/' + this.parentId);
+      this.$router.push(PublicPath + 'directory/' + this.file.parentId);
     },
     home: function(e){
       e.preventDefault();
       this.$emit('changeDirectory');
       this.$router.push(PublicPath);
+    },
+    toggleBookmark: function(e){
+      e.preventDefault();
+      this.$store.commit('bookmark/toggle');
     },
     logout: function(e) {
       e.preventDefault();
@@ -103,7 +140,8 @@ export default {
 }
 
 .parentLink,
-.homeLink {
+.homeLink,
+.bookmark {
   flex-grow: 0;
   line-height: $headerHeight - 8px;
   width: $headerHeight - 8px;
@@ -123,6 +161,12 @@ export default {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  &Star {
+    margin-right: 0 !important;
+  }
+  &Text{
+    margin-left: 6px;
+  }
 }
 
 .logout {

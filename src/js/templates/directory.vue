@@ -1,11 +1,12 @@
 <template>
   <div class="page" :style="getInitialStyle()">
     <common-header
-       :parentId="$store.state.dir.current.parentId"
-       :name="$store.state.dir.current.name"
-       @changeDirectory="changeDirectory"
+      :file="getHeaderFile()"
+      :hideStar="type == 'bookmark'"
+      :back="isHeaderBack()"
+      @changeDirectory="changeDirectory"
     >
-      <list-button color="primary" icon='refresh' @click="refresh" :disabled="!id || id == ''"></list-button>
+      <list-button color="primary" icon='refresh' @click="refresh" :disabled="!availableRefresh()"></list-button>
       <vert-div :class="$style.divider"/>
       <input-text type="text" ref="search" :class="$style.searchInput" v-show="$data.search" @keyup="filterList($event.target.value)" :defualtValue="$data.searchWord"/>
       <list-button color="primary" icon='search' @click="toggleSearch"></list-button>
@@ -15,13 +16,20 @@
         <list-button color="primary" icon='th-large'> </list-button>
       </div>
     </common-header>
-    <file-list
-      :files="$data.filteredList"
-      :sort="$data.sort"
-      :asc="$data.asc"
-      :highlight="$store.state.dir.previousId"
-      @changeOrder="changeOrder"
-    />
+    <div :class="$style.body">
+      <bookmarks
+        :class="$style.bookmark"
+        :lists="$store.state.bookmark.lists"
+      />
+      <file-list
+        :files="$data.filteredList"
+        :sort="$data.sort"
+        :asc="$data.asc"
+        :highlight="$store.state.dir.previousId"
+        @changeOrder="changeOrder"
+        @select="select"
+      />
+    </div>
   </div>
 </template>
 
@@ -31,7 +39,9 @@ import VertDiv from 'atoms/block/vertical-divider.vue';
 import ListButton from 'atoms/button/iconfont-base.vue';
 import FileList from 'organisms/file-list.vue';
 import InputText from 'atoms/form/input.vue';
+import Bookmarks from 'organisms/bookmarks.vue';
 import { mapState } from 'vuex';
+import {getUrlFromFile} from 'utils/consts.js';
 
 export default {
   components: {
@@ -39,10 +49,24 @@ export default {
     VertDiv,
     ListButton,
     FileList,
-    InputText
+    InputText,
+    Bookmarks,
   },
-  props: ['id'],
+  props: ['id', 'type'],
   methods: {
+    select: function(file){
+      switch(this.type){
+        case 'bookmark':
+          this.$store.dispatch('bookmark/remove', file.id);
+          break;
+        case 'directory':
+        default:
+          let url = getUrlFromFile(file);
+          this.$store.dispatch('file/select', file.id);
+          this.$router.push(url);
+          break;
+        }
+    },
     toggleSearch(){
       this.$data.search = !this.$data.search;
       if(!this.$data.search){
@@ -68,12 +92,33 @@ export default {
     refresh: function() {
       this.$store.dispatch('dir/refresh', { id: this.id });
     },
+    availableRefresh: function(){
+      return this.id && this.id != '' && this.type == 'directory';
+    },
+    getHeaderFile: function(){
+      switch(this.type){
+        case 'bookmark':
+          return this.$store.state.bookmark.selected || {id:'', name:''};
+        case 'directory':
+        default:
+          return this.$store.state.dir.current;
+      }
+    },
+    isHeaderBack: function(){
+      return this.type == 'bookmark';
+    },
     fetchData: function(force) {
-      if(this.$store.state.dir.current.id != this.$route.params.id || force){
+      if(this.type == 'bookmark'){
+        this.$store.dispatch('bookmark/select', this.id);
+        return;
+      }
+      if(this.$store.state.dir.current.id != this.id || force){
         this.$store.dispatch('dir/dir', {
           id: this.id||''
         });
       }
+      this.$store.dispatch('bookmark/lists');
+      this.$store.dispatch('file/select', this.id);
     },
     changeOrder(params){
       this.$router.replace({
@@ -86,14 +131,32 @@ export default {
       this.updateFiles();
     },
     updateFiles(){
-      this.$data.filteredList = this.files.filter( item => {
-        return item.name.indexOf( this.$data.searchWord ) != -1;
-      });
+      switch(this.type){
+        case 'bookmark':
+          this.$data.filteredList = this.bookmarkFiles.filter( item => {
+            return item.name.indexOf( this.$data.searchWord ) != -1;
+          });
+        break;
+        case 'directory':
+        default:
+          this.$data.filteredList = this.dirFiles.filter( item => {
+            return item.name.indexOf( this.$data.searchWord ) != -1;
+          });
+        break;
+      }
     },
     getInitialStyle(){
       if(!this.filteredList){
-        return {
-          height: this.files.length * 30 + 100 + 'px'
+        switch(this.type){
+          case 'bookmark':
+            return {
+              height: this.bookmarkFiles.length * 30 + 100 + 'px'
+            }
+          case 'directory':
+          default:
+            return {
+              height: this.dirFiles.length * 30 + 100 + 'px'
+            }
         }
       }
     }
@@ -116,19 +179,23 @@ export default {
       searchWord,
       sort,
       asc,
-      filteredList: this.$props.files
+      filteredList: this.type == 'bookmark' ? this.bookmarkFiles : this.dirFiles
     };
     return data;
   },
   computed: mapState({
-    files: s => s.dir.files
+    dirFiles: s => s.dir.files,
+    bookmarkFiles: s => {
+      return s.bookmark.selected ? s.bookmark.selected.files : []
+    }
   }),
   watch: {
     '$route': 'fetchData',
-    'files': 'updateFiles'
+    'dirFiles': 'updateFiles',
+    'bookmarkFiles': 'updateFiles',
+    'type': 'updateFiles'
   },
   created: function() {
-    console.log('create');
     this.fetchData(true);
   },
   beforeRouteLeave: function(to, from, next) {
@@ -201,6 +268,15 @@ export default {
   margin: 4px 0;
   padding: 0 8px;
   text-align: center;
+}
+
+.body {
+  display: flex;
+  align-items: stretch;
+}
+
+.bookmark {
+  height: calc(#{'100vh - ' + $headerHeight});
 }
 
 </style>

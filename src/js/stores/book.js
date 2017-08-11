@@ -37,11 +37,13 @@ export default {
     },
     updateEntries(state, payload) {
       state.id = payload.data.id;
-      state.fileCount = +payload.data.fileCount;
       state.parentId = payload.data.parentId;
       state.name = payload.data.name;
+
+      state.fileCount = +payload.data.fileCount;
       state.loadedImages = [];
       state.images = [];
+      state.imageStatuses = [];
       state.loaded = 0;
       for(let i = 0; i < payload.data.fileCount; i++){
         Vue.set(state.imageStatuses, i, BEFORE_LOAD);
@@ -64,6 +66,9 @@ export default {
   },
   actions: {
     files({commit}, payload){
+      console.log('stopLoadImages');
+      clearTimeout(loaderTimer);
+      commit('initEntries');
       axios.get(`${payload.type}/${payload.id}`)
         .then( res => {
           commit('updateEntries', {

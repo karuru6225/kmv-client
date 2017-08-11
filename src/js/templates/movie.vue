@@ -2,28 +2,46 @@
   <div class="page">
     <common-header
       :back=true
-      :name="$store.state.movie.metadata.name"
+      :file="$store.state.file.current"
       :class="$data.headerClass"
     >
       <vert-div />
       <i-button :size="28" :class="$data.sizeButtonClass" @click="toggleSize"/>
     </common-header>
-    <div :class="$style.mainArea" @wheel="changeVolume">
-      <video ref="video" :class="$data.videoClass" @click="togglePlay"/>
-      <div :class="$style.seekContainer" @click="e => seek(e)" ref="seekbar" @mousemove="updateHoverTime" @mouseout="hideHoverTime">
-        <template v-for="loaded in $data.buffered">
-          <div :class="$style.seekLoaded" :style="{
-            left: (loaded.start*100) + '%',
-            width: (loaded.end - loaded.start)*100 + '%'
+    <div :class="$style.body">
+      <bookmarks
+        :class="$style.bookmark"
+        :lists="$store.state.bookmark.lists"
+      />
+      <div :class="$style.mainArea" @wheel="changeVolume" @mousemove="mousemove">
+        <video ref="video" :class="$data.videoClass" @click="togglePlay"/>
+        <div :class="$style.seekContainer" @click="e => seek(e)" ref="seekbar" @mousemove="updateHoverTime" @mouseout="hideHoverTime">
+          <template v-for="loaded in $data.buffered">
+            <div :class="$style.seekLoaded" :style="{
+              left: (loaded.start*100) + '%',
+              width: (loaded.end - loaded.start)*100 + '%'
+            }"/>
+          </template>
+          <div :class="$style.seekPlayed" :style="{
+            width: ($data.currentTime / $data.duration)*100 + '%'
           }"/>
-        </template>
-        <div :class="$style.seekPlayed" :style="{
-          width: ($data.currentTime / $data.duration)*100 + '%'
-        }"/>
-      </div>
-      <div :class="$style.controller">
-        <span>{{formatTime($data.currentTime)}} / {{formatTime($data.duration)}}</span>
-        <span>vol: {{$data.volume}} {{$data.hoverTime}}</span>
+        </div>
+        <div :class="$style.controller">
+          <span>{{formatTime($data.currentTime)}} / {{formatTime($data.duration)}}</span>
+          <div :class="$style.volumeContaer" ref="volume"
+            @click="volumeClick"
+            @mousedown="volumeMousedown"
+          >
+            <div :class="$style.volumeBody" :style="{
+              width: ($data.volume * 100) + '%'
+            }">
+              <div :class="$style.volumeText">
+                vol: {{Math.round($data.volume*100)}}%
+              </div>
+            </div>
+          </div>
+          <span>{{$data.hoverTime}}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -33,6 +51,7 @@
 import CommonHeader from 'organisms/header.vue';
 import VertDiv from 'atoms/block/vertical-divider.vue';
 import IButton from 'atoms/button/img-base.vue';
+import Bookmarks from 'organisms/bookmarks.vue';
 import { mapState } from 'vuex';
 import Hls from 'hls.js';
 import $ from 'jquery';
@@ -46,12 +65,14 @@ const sizeIds = [
 
 let seekTimer;
 let volumeThrottle=0;
+let volumeStartX;
 
 export default {
   components: {
     CommonHeader,
     VertDiv,
     IButton,
+    Bookmarks,
   },
   props: ['id', 'type'],
   methods: {
@@ -99,9 +120,33 @@ export default {
         volumeThrottle = Date.now();
       }
     },
+    volumeClick: function(e){
+      const $vol = $(this.$refs.volume);
+      this.setVolume(e.offsetX / $vol.width());
+    },
+    volumeMousedown: function(e){
+      volumeStartX = true;
+    },
+    volumeMousemove: function(e){
+      if(volumeStartX){
+        const $vol = $(this.$refs.volume);
+        this.setVolume( (e.clientX - $vol.offset().left) / $vol.width() );
+      }
+    },
+    volumeMouseup: function(e){
+      if(volumeStartX){
+        const $vol = $(this.$refs.volume);
+        const offset = $vol.offset();
+        if(offset){
+          this.setVolume( (e.clientX - offset.left) / $vol.width() );
+        }
+      }
+      volumeStartX = false;
+    },
     setVolume(vol){
       const v = this.$refs.video;
-      v.volume = Math.max(0, Math.min(10, Math.round(vol*10))) / 10;
+      const steps = 100;
+      v.volume = Math.max(0, Math.min(steps, Math.round(vol*steps))) / steps;
       this.$data.volume = v.volume;
     },
     getSizeButtonClass(idx) {
@@ -123,9 +168,29 @@ export default {
       ];
     },
     fetchData: function() {
+      console.log('fetchData in movie');
+      if(this.$data.hls){
+        this.$data.hls.destroy();
+        this.$data.hls = null;
+        clearInterval(seekTimer);
+      }
+      this.$data.source = ApiEntry + `file/${this.$props.id}/direct?open&token=${this.$store.state.auth.token}`;
+      const hls = new Hls();
+      hls.loadSource(this.$data.source);
+      hls.attachMedia(this.$refs.video);
+      this.$data.hls = hls;
+      this.setVolume(0.2);
+      seekTimer = setInterval(this.updateSeek.bind(this), 500);
+
       this.$store.dispatch('movie/meta', {
         id: this.id||''
       });
+      this.$store.dispatch('bookmark/lists');
+      this.$store.dispatch('file/select', this.id);
+
+      if(this.$store.state.bookmark.playing){
+        this.$refs.video.play();
+      }
     },
     updateSeek: function() {
       const v = this.$refs.video;
@@ -152,17 +217,17 @@ export default {
     seek: function(e){
       const v = this.$refs.video;
       const $seekbar = $(this.$refs.seekbar);
-      const seekTime = v.duration * e.clientX / $seekbar.width();
+      console.log($seekbar.offset().left);
+      const seekTime = v.duration * (e.clientX -$seekbar.offset().left) / $seekbar.width();
       v.currentTime = seekTime;
       this.$data.currentTime = seekTime;
-    }
+    },
   },
   data() {
     const initialIdx = 0;
     return {
       headerClass: this.$style.headerHidden,
-      source: ApiEntry + `file/${this.$props.id}/direct?open&token=${this.$store.state.auth.token}`,
-      //source: ApiEntry + `file/${this.$props.id}/direct?open`,
+      source: '',
       videoSizeIdx: initialIdx,
       sizeButtonClass: this.getSizeButtonClass(initialIdx),
       videoClass: this.getVideoClass(initialIdx),
@@ -174,22 +239,24 @@ export default {
       hoverTime: ''
     };
   },
-  created: function() {
-    this.fetchData();
-    window.addEventListener('mousemove', this.mousemove.bind(this));
+  watch: {
+    '$route': 'fetchData',
   },
   mounted: function() {
-    const hls = new Hls();
-    hls.loadSource(this.$data.source);
-    hls.attachMedia(this.$refs.video);
-    this.$data.hls = hls;
-    this.setVolume(0.2);
-    seekTimer = setInterval(this.updateSeek.bind(this), 500);
+    this.$refs.video.addEventListener('ended', () => {
+      if(this.$store.state.bookmark.playing){
+        this.$store.commit('bookmark/next');
+      }
+    });
+    window.addEventListener('mouseup', this.volumeMouseup.bind(this));
+    window.addEventListener('mousemove', this.volumeMousemove.bind(this));
+    this.fetchData();
   },
   beforeDestroy: function() {
-    window.removeEventListener('mousemove', this.mousemove.bind(this));
     this.$data.hls.destroy();
     clearInterval(seekTimer);
+    window.removeEventListener('mouseup', this.volumeMouseup.bind(this));
+    window.removeEventListener('mousemove', this.volumeMousemove.bind(this));
   }
 }
 
@@ -224,17 +291,19 @@ export default {
 }
 
 .mainArea {
-  width: 100vw;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex-grow: 1;
+  flex-shrink: 1;
 }
 
 $seekHeight: 4px;
 $controllerHeight: 16px;
 .video {
-  max-width: 100vw;
   max-height: calc(#{'100vh - ' + ($seekHeight + $controllerHeight) });
-  display: block;
-  margin: 0 auto;
+  align-self: center;
   &640 {
     width: 640px;
   }
@@ -252,7 +321,7 @@ $controllerHeight: 16px;
   &Container {
     height: $seekHeight;
     position: relative;
-    width: 100vw;
+    width: 100%;
     cursor: col-resize;
     background-color: $primaryColorLight;
     transition: height 1s;
@@ -277,6 +346,36 @@ $controllerHeight: 16px;
   display: flex;
   > * {
     margin-left: 8px;
+    line-height: 24px;
   }
 }
+
+.volume {
+  &Contaer {
+    margin: 2px 0;
+    margin-left: 8px;
+    line-height: 20px;
+    cursor: default;
+    background-color: $primaryColorLight;
+    width: 75px;
+  }
+  &Body {
+    box-sizing: border-box;
+    overflow: visible;
+    white-space: nowrap;
+    background-color: $primaryColor;
+  }
+  &Text {
+    padding-left: 4px;
+  }
+}
+
+.body {
+  display: flex;
+  align-items: stretch;
+}
+
+.bookmark {
+}
+
 </style>

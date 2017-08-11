@@ -26,6 +26,7 @@
             :key="idx"
             :file="file"
             :class="getFileClass(idx, file.id)"
+            @click="$emit('select',file)"
           />
         </template>
       </tbody>
@@ -163,7 +164,9 @@ export default {
   watch: {
     files: function(files){
       this.$data.sortedFiles = this.getSortedArray(this.$data.sortCol, this.$data.order);
-      setTimeout( this.resize.bind(this), 100);
+      this.$nextTick(function(){
+        this.resize();
+      });
     }
   },
   mounted: function() {

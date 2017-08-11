@@ -18,7 +18,7 @@ const routes = [
   { path: PublicPath,  component: Directory },
   { path: PublicPath + 'login',  component: LoginPage },
   { path: PublicPath + 'directory/', component: Directory},
-  { path: PublicPath + 'directory/:id', component: Directory, props: true},
+  { path: PublicPath + ':type(directory|bookmark)/:id', component: Directory, props: true},
 ].concat( Object.keys(pathComponentMap).map( path => {
   return {
     path: `${PublicPath}${path}/:type/:id`,
@@ -36,5 +36,3 @@ export default new VueRouter({
     return savedPosition;
   }
 });
-
-

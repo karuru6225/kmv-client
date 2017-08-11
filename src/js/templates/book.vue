@@ -2,18 +2,24 @@
   <div class="page">
     <common-header
       :back=true
-      :name="$store.state.book.name"
+      :file="$store.state.file.current"
       :class="$data.showHeader ? $style.header : $style.headerHidden"
     />
-    <div :class="$style.main" ref="imageArea" @click="e => click(e)">
-      <template v-for="img in $data.images">
-        <img :src="img.src" :style="getImageStyle(img)"/>
-      </template>
-    </div>
-    <div :class="getStatusBarClass()">
-      <template v-for="(stat, idx) in $store.state.book.imageStatuses">
-        <div :class="getLoadStatClass(stat, idx)" @click="setCurrentPage(idx)"></div>
-      </template>
+    <div :class="$style.body">
+      <bookmarks
+        :class="$style.bookmark"
+        :lists="$store.state.bookmark.lists"
+      />
+      <div :class="$style.main" ref="imageArea" @click="e => click(e)" @mousemove="mousemove">
+        <template v-for="img in $data.images">
+          <img :src="img.src" :style="getImageStyle(img)"/>
+        </template>
+      </div>
+      <div :class="getStatusBarClass()">
+        <template v-for="(stat, idx) in $store.state.book.imageStatuses">
+          <div :class="getLoadStatClass(stat, idx)" @click="setCurrentPage(idx)"></div>
+        </template>
+      </div>
     </div>
   </div>
 </template>
@@ -22,6 +28,7 @@
 import CommonHeader from 'organisms/header.vue';
 import VertDiv from 'atoms/block/vertical-divider.vue';
 import ListButton from 'atoms/button/iconfont-base.vue';
+import Bookmarks from 'organisms/bookmarks.vue';
 import { mapState } from 'vuex';
 import $ from 'jquery';
 
@@ -30,6 +37,7 @@ export default {
     CommonHeader,
     VertDiv,
     ListButton,
+    Bookmarks,
   },
   props: ['id', 'type'],
   methods: {
@@ -63,6 +71,8 @@ export default {
         type: this.type,
         page: this.$data.currentPage
       });
+      this.$store.dispatch('bookmark/lists');
+      this.$store.dispatch('file/select', this.id);
     },
     fileCountLoaded() {
       this.$store.dispatch('book/startLoadImages', {
@@ -78,6 +88,11 @@ export default {
       console.log('setCurrentPage: ' + page);
       this.$data.currentPage =  this.saturation(page);
       this.pageUpdate();
+      if(page > this.$data.currentPage + 1){
+        if(this.$store.state.bookmark.playing){
+          this.$store.commit('bookmark/next');
+        }
+      }
     },
     prev(){
       let delta = 2;
@@ -258,13 +273,16 @@ export default {
     statuses: s => s.book.imageStatuses
   }),
   watch: {
+    '$route': function(){
+      this.$data.currentPage = 0;
+      this.fetchData();
+    },
     'fileCount': 'fileCountLoaded',
     'loaded': 'setImage'
   },
   created: function() {
     this.fetchData();
     window.addEventListener('keyup', this.keyup.bind(this));
-    window.addEventListener('mousemove', this.mousemove.bind(this));
   },
   mounted: function() {
     console.log(this.$route);
@@ -272,7 +290,6 @@ export default {
   },
   beforeDestroy: function() {
     window.removeEventListener('keyup', this.keyup.bind(this));
-    window.removeEventListener('mousemove', this.mousemove.bind(this));
     this.$store.dispatch('book/stopLoadImages', {
       id: this.id,
       type: this.type,
@@ -295,6 +312,8 @@ export default {
 
 .main {
   display: flex;
+  flex-grow: 1;
+  flex-shrink: 1;
   margin: 0 auto;
   height: calc(100vh - 4px);
   justify-content: center;
@@ -339,4 +358,13 @@ export default {
 .flipImage {
   transform: scale(-1, -1);
 }
+
+.body {
+  display: flex;
+  align-items: stretch;
+}
+
+.bookmark {
+}
+
 </style>

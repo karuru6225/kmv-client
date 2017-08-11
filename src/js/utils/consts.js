@@ -25,3 +25,17 @@ export const extComponentMap = {
     component: Download
   },
 };
+
+export function getUrlFromFile(file){
+  const map = extComponentMap;
+  let url = `${PublicPath}${map['any'].path}/${file.type}/${file.id}`;
+  if(file.type == 'directory'){
+    url = `${PublicPath}directory/${file.id}`;
+  }else if(map[file.type]){
+    const setting = map[file.type];
+    if(setting){
+      url = `${PublicPath}${setting.path}/${file.type}/${file.id}`;
+    }
+  }
+  return url;
+}
