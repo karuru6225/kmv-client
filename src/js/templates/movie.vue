@@ -176,7 +176,9 @@ export default {
         clearInterval(seekTimer);
       }
       this.$data.source = ApiEntry + `file/${this.$props.id}/direct?open&token=${this.$store.state.auth.token}`;
-      const hls = new Hls();
+      const hls = new Hls({
+        maxBufferLength: 300
+      });
       hls.loadSource(this.$data.source);
       hls.attachMedia(this.$refs.video);
       this.$data.hls = hls;
@@ -383,9 +385,6 @@ $controllerHeight: 16px;
 .body {
   display: flex;
   align-items: stretch;
-}
-
-.bookmark {
 }
 
 </style>

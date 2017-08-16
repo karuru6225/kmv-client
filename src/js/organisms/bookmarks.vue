@@ -1,84 +1,96 @@
 <template>
-  <div :class="getContainerClass()">
-    <div :class="$style.list">
-      <div :class="$style.listHeader">
-        <span :class="$style.listHeaderName">
-          lists
-        </span>
+  <div :class="$style.containerWrapper">
+    <div :class="$style.containerHeader">
+      <span :class="$style.containerHeaderName">
+        &nbsp;Playlists
+      </span>
+      <secondary-link
+       :class="$style.containerHeaderButton"
+        @click="toggleBookmark"
+      >
+        <icon name="bookmark" v-if="!$store.state.bookmark.show" />
+        <icon name="close" v-if="$store.state.bookmark.show" />
+      </secondary-link>
+    </div>
+    <div :class="getContainerClass()">
+      <div :class="$style.list">
+        <template v-for="list in lists">
+          <div
+            :class="getListClass(list.id)"
+            @click="click($event, list.id)">
+            <span :class="$style.listItemName">
+              {{list.name}}
+            </span>
+            <secondary-link
+              @click="togglePlay($event, list.id)"
+              :class="$style.listItemButton"
+            >
+              <icon name="play" v-if="$store.state.bookmark.playing != list.id" />
+              <icon name="stop" v-if="$store.state.bookmark.playing == list.id" />
+            </secondary-link>
+            <secondary-link
+              @click="showBookmark($event, list.id)"
+              :class="$style.listItemButton"
+            >
+              <icon name="list" />
+            </secondary-link>
+          </div>
+        </template>
       </div>
-      <template v-for="list in lists">
-        <div
-          :class="getListClass(list.id)"
-          @click="click($event, list.id)">
-          <span :class="$style.listItemName">
-            {{list.name}}
-          </span>
-          <secondary-link
-            @click="togglePlay($event, list.id)"
-            :class="$style.listItemButton"
-          >
-            <icon name="play" v-if="$store.state.bookmark.playing != list.id" />
-            <icon name="stop" v-if="$store.state.bookmark.playing == list.id" />
-          </secondary-link>
-          <secondary-link
-            @click="showBookmark($event, list.id)"
-            :class="$style.listItemButton"
-          >
-            <icon name="list" />
-          </secondary-link>
-        </div>
-      </template>
-      <div :class="$style.listFooter">
-        <secondary-link
-          @click="toggleRandom"
-          :class="$style.listFooterButton"
-          v-if="$store.state.bookmark.playing != -1"
-        >
-          <icon name="random" v-if="$store.state.bookmark.random"/>
-          <icon name="list-ol"  v-if="!$store.state.bookmark.random"/>
-        </secondary-link>
-        <vert-div :class="$style.divider"/>
+      <div :class="$style.controller">
         <!--<secondary-link
           @click="prev"
-          :class="$style.listFooterButton"
+          :class="$style.controllerButton"
           v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="fast-backward" />
-        </secondary-link>-->
+        </secondary-link>
         <secondary-link
           @click="seekBefore"
-          :class="$style.listFooterButton"
+          :class="$style.controllerButton"
           v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="backward" />
         </secondary-link>
         <secondary-link
           @click="oneBefore"
-          :class="$style.listFooterButton"
+          :class="$style.controllerButton"
           v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="step-backward" />
         </secondary-link>
         <secondary-link
           @click="oneAfter"
-          :class="$style.listFooterButton"
+          :class="$style.controllerButton"
           v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="step-forward" />
         </secondary-link>
         <secondary-link
           @click="seekAfter"
-          :class="$style.listFooterButton"
+          :class="$style.controllerButton"
           v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="forward" />
-        </secondary-link>
+        </secondary-link>-->
         <secondary-link
           @click="next"
-          :class="$style.listFooterButton"
+          :class="$style.controllerButton"
           v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="fast-forward" />
+        </secondary-link>
+        <hori-div
+          :class="$style.divider"
+          v-if="$store.state.bookmark.playing != -1"
+        />
+        <secondary-link
+          @click="toggleRandom"
+          :class="$style.controllerButton"
+          v-if="$store.state.bookmark.playing != -1"
+        >
+          <icon name="random" v-if="$store.state.bookmark.random"/>
+          <icon name="list-ol"  v-if="!$store.state.bookmark.random"/>
         </secondary-link>
       </div>
     </div>
@@ -88,16 +100,20 @@
 <script>
 import SecondaryLink from 'atoms/text/link-secondary16-regular.vue';
 import Icon from 'atoms/icon/font-base.vue';
-import VertDiv from 'atoms/block/vertical-divider.vue';
+import HoriDiv from 'atoms/block/horizontal-divider.vue';
 
 export default {
   components: {
     Icon,
     SecondaryLink,
-    VertDiv,
+    HoriDiv,
   },
   props: ['lists'],
   methods: {
+    toggleBookmark: function(e){
+      e.preventDefault();
+      this.$store.commit('bookmark/toggle');
+    },
     toggleRandom: function(e){
       e.preventDefault();
       this.$store.commit('bookmark/toggleRandom');
@@ -161,40 +177,53 @@ export default {
 <style lang="scss" module>
 @import "css/_settings.scss";
 
+$controllerWidth: 32px;
 .container {
-  width: 0;
   overflow-x: hidden;
   display: flex;
   border-right: solid 1px $dividerColor;
-  transition: flex-basis .3s;
-  flex-basis: 0;
-  flex-shrink: 0;
-  flex-grow: 0;
+  transition: width .3s;
+  width: $controllerWidth;
+  flex-shrink: 1;
+  flex-grow: 1;
   &Shown {
-    flex-basis: $bookmarkWidth;
+    width: $bookmarkWidth + $controllerWidth;
   }
-}
-
-$footerButtonSize: 22px;
-.list {
-  width: 100%;
-  position: relative;
+  &Wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
   &Header {
+    border-right: solid 1px $dividerColor;
     border-bottom: solid 1px $dividerColor;
-    padding-left: 4px;
-    line-height: 32px;
+    line-height: $controllerWidth;
     display: flex;
     &Name {
+      flex-basis: 0;
       flex-grow: 1;
       flex-shrink: 1;
+      width: 0;
+      overflow: hidden;
     }
     &Button {
-      flex-basis: 32px;
+      flex-basis: $controllerWidth;
       flex-shrink: 0;
       flex-grow: 0;
       text-align: center;
     }
   }
+}
+
+.list {
+  width: 0;
+  flex-basis: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  overflow-x: hidden;
+  position: relative;
+  border-right: solid 1px $dividerColor;
   &Item {
     display: flex;
     padding-left: 4px;
@@ -218,28 +247,32 @@ $footerButtonSize: 22px;
       text-align: center;
     }
   }
-  &Footer {
-    line-height: $footerButtonSize;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    //justify-content: space-between;
-    justify-content: space-around;
-    position: absolute;
-    bottom: 0;
-    &Button {
-      flex-basis: $footerButtonSize;
-      flex-shrink: 0;
-      flex-grow: 0;
-      text-align: center;
-    }
+}
+
+$controllerButtonSize: $controllerWidth;
+.controller {
+  flex-basis: $controllerWidth;
+  flex-grow: 0;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  &Button {
+    line-height: $controllerButtonSize;
+    flex-basis: $controllerButtonSize;
+    flex-shrink: 0;
+    flex-grow: 0;
+    text-align: center;
   }
 }
 
 .divider {
   flex-grow: 0;
   flex-shrink: 0;
-  height: $footerButtonSize;
+  flex-basis: 9px;
+  padding: 0;
+  width: $controllerButtonSize;
+  height: 9px;
+  box-sizing: border-box;
 }
 
 

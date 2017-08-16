@@ -246,11 +246,12 @@ export default {
       this.$data.images = images;
     },
     mousemove(e) {
+      /*
       if(e.clientY < 44) {
         this.$data.showHeader = true;
       }else{
         this.$data.showHeader = false;
-      }
+      }//*/
       const {x, y} = this.getArea(e);
 
       let cursor = "";

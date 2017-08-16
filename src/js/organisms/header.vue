@@ -22,13 +22,6 @@
         <icon name="home" />
       </primary-link>
       <vert-div :class="$style.divider"/>
-      <primary-link
-        @click="toggleBookmark"
-        :class="$style.bookmark"
-      >
-        <icon name="bookmark" />
-      </primary-link>
-      <vert-div :class="$style.divider"/>
       <primary-label :class="$style.currentName">
         <list-button color="primary"
           v-show="!hideStar"
@@ -92,10 +85,6 @@ export default {
       e.preventDefault();
       this.$emit('changeDirectory');
       this.$router.push(PublicPath);
-    },
-    toggleBookmark: function(e){
-      e.preventDefault();
-      this.$store.commit('bookmark/toggle');
     },
     logout: function(e) {
       e.preventDefault();
