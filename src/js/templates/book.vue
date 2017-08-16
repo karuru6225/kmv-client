@@ -10,7 +10,7 @@
         :class="$style.bookmark"
         :lists="$store.state.bookmark.lists"
       />
-      <div :class="$style.main" ref="imageArea" @click="e => click(e)" @mousemove="mousemove">
+      <div :class="$style.main" ref="imageArea" @click="e => click(e)" @mousemove="mousemove" :style="$data.imageAreaStyle">
         <template v-for="img in $data.images">
           <img :src="img.src" :style="getImageStyle(img)"/>
         </template>
@@ -57,7 +57,7 @@ export default {
       }
     },
     getLoadStatClass(stat, idx) {
-      if(idx <= this.$data.currentPage){
+      if(idx <= this.currentPage){
         return this.$style.current;
       }
       if(stat == 2){
@@ -69,7 +69,7 @@ export default {
       this.$store.dispatch('book/files', {
         id: this.id,
         type: this.type,
-        page: this.$data.currentPage
+        page: +(this.$route.query.page)||0
       });
       this.$store.dispatch('bookmark/lists');
       this.$store.dispatch('file/select', this.id);
@@ -78,56 +78,26 @@ export default {
       this.$store.dispatch('book/startLoadImages', {
         id: this.id,
         type: this.type,
-        offset: this.$data.currentPage
       });
     },
-    saturation(page){
-      return Math.max(Math.min(page, this.fileCount - 1), 0);
-    },
     setCurrentPage(page){
-      console.log('setCurrentPage: ' + page);
-      this.$data.currentPage =  this.saturation(page);
+      const prevCurrent = this.currentPage;
+      this.$store.commit('book/setCurrentPage', page);
       this.pageUpdate();
-      if(page > this.$data.currentPage + 1){
-        if(this.$store.state.bookmark.playing){
+      if(page > this.currentPage && prevCurrent == (this.fileCount - 1) ){
+        if(this.$store.state.bookmark.playing != -1){
           this.$store.commit('bookmark/next');
         }
       }
     },
     prev(){
-      let delta = 2;
-      const nextBase = this.saturation(this.$data.currentPage - 2);
-      this.$store.dispatch('book/startLoadImages', {
-        id: this.id,
-        type: this.type,
-        offset: nextBase
-      });
-      const img1 = this.$store.state.book.images[nextBase];
-      const img2 = this.$store.state.book.images[nextBase + 1];
-      if(img1.width > img1.height || img2.width > img2.height){
-        delta = 1;
-      }
-      this.setCurrentPage(this.$data.currentPage - delta);
+      this.setCurrentPage(this.currentPage - 2);
     },
     next(){
-      let delta = 2;
-      if(this.$data.spread){
-        delta = 1;
-      }
-      this.setCurrentPage(this.$data.currentPage + delta);
-      this.$store.dispatch('book/startLoadImages', {
-        id: this.id,
-        type: this.type,
-        offset: this.$data.currentPage
-      });
+      this.setCurrentPage(this.currentPage + 2);
     },
     onePage(){
-      this.setCurrentPage(this.$data.currentPage + 1);
-      this.$store.dispatch('book/startLoadImages', {
-        id: this.id,
-        type: this.type,
-        offset: this.$data.currentPage
-      });
+      this.setCurrentPage(this.currentPage + 1);
     },
     toggleFirst(){
       this.$data.leftFirst = !this.$data.leftFirst;
@@ -161,19 +131,46 @@ export default {
     centerBottomAction(){
       this.onePage();
     },
+    getArea(e) {
+      const $imageArea = $(this.$refs.imageArea);
+      const offset = $imageArea.offset();
+      const iaWidth = $imageArea.width();
+      const iaHeight = $imageArea.height();
+      const clickX = e.clientX - offset.left;
+      const clickY = e.clientY - offset.top;
+      
+      let x = 0;
+      let y = 0;
+      if(clickX < iaWidth / 4){
+        x = 0;
+      }else if(iaWidth / 4 <= clickX && clickX <= iaWidth*3/4){
+        x = 1;
+      }else if(iaWidth*3/4 <  clickX){
+        x = 2;
+      }
+      if(clickY < iaHeight / 4){
+        y = 0;
+      }else if(iaHeight / 4 <= clickY && clickY <= iaHeight*3/4){
+        y = 1;
+      }else if(iaHeight*3/4 < clickY){
+        y = 2;
+      }
+      return {x, y};
+    },
     click(e) {
-      const wWidth = $(window).width();
-      const wHeight = $(window).height();
-      if(e.clientX < wWidth/3){
+      const {x, y} = this.getArea(e);
+      if(x == 0){
         this.leftAction();
-      }else if(wWidth*2/3 < e.clientX){
+      }else if(x == 1){
+        if(y == 0){
+          this.centerTopAction();
+        }else if(y == 1){
+          this.centerMiddleAction();
+        }else if(y == 2){
+          this.centerBottomAction();
+        }
+      }else if(x == 2){
         this.rightAction();
-      }else if(e.clientY < wHeight/3){
-        this.centerTopAction();
-      }else if(wHeight/3 <= e.clientY && e.clientY < wHeight*2/3){
-        this.centerMiddleAction();
-      }else if(wHeight*2/3 <= e.clientY){
-        this.centerBottomAction();
       }
     },
     keyup(e) {
@@ -222,7 +219,7 @@ export default {
     setImage() {
       const url = window.URL || window.webkitURL;
       const book = this.$store.state.book;
-      const page = this.$data.currentPage;
+      const page = this.currentPage;
       const images = [];
       if(book.images[page]) {
         const img = book.images[page];
@@ -254,27 +251,48 @@ export default {
       }else{
         this.$data.showHeader = false;
       }
+      const {x, y} = this.getArea(e);
+
+      let cursor = "";
+
+      if(y == 0){
+        cursor += "n";
+      }else if(y == 2){
+        cursor += "s";
+      }
+
+      if(x == 0){
+        cursor += "w";
+      }else if(x == 2){
+        cursor += "e";
+      }
+      if(cursor == ""){
+        cursor = "move";
+      }else{
+        cursor = cursor + '-resize';
+      }
+      this.$set(this.$data, 'imageAreaStyle', { cursor });
     }
   },
   data() {
     return {
-      currentPage: +(this.$route.query.page)||0,
       leftFirst: false,
       showHeader: false,
       leftFlip: null,
       rightFlip: null,
       spread: false,
-      images: []
+      images: [],
+      imageAreaStyle: {}
     };
   },
   computed: mapState({
     fileCount: s => s.book.fileCount,
+    currentPage: s => s.book.currentPage,
     loaded: s => s.book.loaded,
     statuses: s => s.book.imageStatuses
   }),
   watch: {
     '$route': function(){
-      this.$data.currentPage = 0;
       this.fetchData();
     },
     'fileCount': 'fileCountLoaded',

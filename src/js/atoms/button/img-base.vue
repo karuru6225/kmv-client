@@ -52,16 +52,16 @@ $lightenRatio: 10%;
 
   color: $primaryColorText;
   background-color: $primaryColor;
-  &:hover {
+  &:active {
     background-color: darken($primaryColor, $darkenRatio);
   }
-  &:active {
-    background-color: lighten($primaryColor, $lightenRatio);
-  }
+  // &:active {
+  //   background-color: lighten($primaryColor, $lightenRatio);
+  // }
   &Disabled {
     @extend .button;
     color: darken($primaryColorText, 40%);
-    &:hover {
+    &:active {
       background-color: $primaryColor;
       color: darken($primaryColorText, 40%);
     }

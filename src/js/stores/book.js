@@ -22,18 +22,19 @@ export default {
     images: [],
     imageStatuses: [],
     loaded: 0,
+    currentPage: 0,
     fileCount: null
   },
   mutations: {
     initEntries(state) {
       state.id = '';
-      state.fileCount = 0;
       state.parentId = '';
       state.name = '';
-      state.loadedImages = [];
       state.images = [];
       state.imageStatuses = [];
       state.loaded = 0;
+      state.currentPage = 0;
+      state.fileCount = 0;
     },
     updateEntries(state, payload) {
       state.id = payload.data.id;
@@ -41,7 +42,6 @@ export default {
       state.name = payload.data.name;
 
       state.fileCount = +payload.data.fileCount;
-      state.loadedImages = [];
       state.images = [];
       state.imageStatuses = [];
       state.loaded = 0;
@@ -63,6 +63,54 @@ export default {
       }
       state.loaded = loaded;
     },
+    setCurrentPage(state, page){
+      const nextPage = Math.max(Math.min(page, state.fileCount - 1), 0);
+      const delta = nextPage - state.currentPage;
+
+      switch(delta){
+        case -1:
+        case 1:
+          state.currentPage = nextPage;
+          return;
+        case 2:
+          if( state.imageStatuses[state.currentPage] != LOADED ){
+            return;
+          }
+          if( state.imageStatuses[state.currentPage + 1] != LOADED ){
+            return;
+          }
+          const img3 = state.images[state.currentPage];
+          const img4 = state.images[state.currentPage + 1];
+          if(img3.width > img3.height || img4.width > img4.height){
+            state.currentPage = nextPage - 1;
+            return;
+          }else{
+            state.currentPage = nextPage;
+            return;
+          }
+        case -2:
+          if( state.imageStatuses[nextPage] != LOADED ){
+            return;
+          }
+          if( state.imageStatuses[nextPage + 1] != LOADED ){
+            return;
+          }
+          const img1 = state.images[nextPage];
+          const img2 = state.images[nextPage + 1];
+          if( img1.width > img1.height || img2.width > img2.height){
+            state.currentPage = nextPage + 1;
+            return;
+          }else{
+            state.currentPage = nextPage;
+            return;
+          }
+        default:
+          state.currentPage = nextPage;
+          return;
+      }
+
+
+    }
   },
   actions: {
     files({commit}, payload){
@@ -87,32 +135,42 @@ export default {
     },
     startLoadImages({commit, state}, payload){
       if(loaderTimer){
-        clearTimeout(loaderTimer);
+        clearInterval(loaderTimer);
       }
-      const loader = function(commit, id, type, offset) {
+      const id = payload.id;
+      const type = payload.type;
+      let bufferLength = 5;
+      loaderTimer = setInterval(() => {
         let loading = 0;
         let i = 0;
         if(!state.fileCount){
-          loaderTimer = setTimeout(loader.bind(null, commit, id, type, offset), loaderInterval);
           return;
         }
         for(i = 0; i < state.fileCount; i++){
-          const fid = (offset + i + state.fileCount) % state.fileCount;
+          const fid = (state.currentPage + i + state.fileCount) % state.fileCount;
           if( state.imageStatuses[fid] == LOADING ){
+            if( i == 0 ){
+              if(bufferLength < 20){
+                bufferLength += 5;
+                console.log('bufferLength: ' + bufferLength);
+              }
+            }
             loading++;
             continue;
           }else if( state.imageStatuses[fid] == LOADED ){
             continue;
           }
           if(loading > 3){
-            loaderTimer = setTimeout(loader.bind(null, commit, id, type, offset), loaderInterval);
+            break;
+          }
+          if(i > bufferLength){
             break;
           }
           const base = axios.defaults.baseURL;
-          const w = window.innerWidth;
-          const h = window.innerHeight;
-          //const path = `${type}/${id}/${fid}/resize/${w}/${h}`;
-          const path = `${type}/${id}/${fid}`;
+          const w = window.innerWidth * 2;
+          const h = window.innerHeight * 2;
+          const path = `${type}/${id}/${fid}/resize/${w}/${h}`;
+          //const path = `${type}/${id}/${fid}`;
 
           // CORSのpreflightアクセスを防ぐために一時的にカスタムヘッダーを無効にする。
           // サーバー側で画像リサイズ用のURLのときの、preflightアクセスに対応した
@@ -163,8 +221,10 @@ export default {
           });
           loading++;
         }
-      };
-      loaderTimer = setTimeout(loader.bind(null, commit, payload.id, payload.type, +payload.offset), 0);
+        if( i == state.fileCount ){
+          clearInterval(loaderTimer);
+        }
+      }, loaderInterval);
     }
   }
 };

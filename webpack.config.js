@@ -10,14 +10,6 @@ const cssBaseExtractor =  new ExtractTextPlugin('css/base.css');
 
 console.log('environment: ' + config.env);
 
-const strips = config.env == 'production' ?  [
-    'console.log',
-    'console.info',
-    'console.warn',
-    'console.error',
-    'console.assert'
-  ] : [];
-
 let webpackConfig = {
   context: path.resolve(__dirname, config.srcDir),
   entry: { },
@@ -43,7 +35,10 @@ let webpackConfig = {
               loaders: {
                 sass: 'vue-style-loader!css-loader!sass-loader?'+
                     '{"includePaths":["src"]}'
-              }
+              },
+              postLoaders: {
+                html: 'babel-loader'
+              },
             }
           }
         ]
@@ -177,7 +172,9 @@ if(config.env == 'production'){
   webpackConfig['plugins'].push(
     new webpack.optimize.UglifyJsPlugin({
       compress: {
-        warnings: false
+        warnings: false,
+        drop_debugger: true,
+        drop_console: true
       }
     }),
     new webpack.optimize.AggressiveMergingPlugin(),

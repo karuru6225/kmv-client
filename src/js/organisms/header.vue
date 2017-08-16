@@ -33,7 +33,7 @@
         <list-button color="primary"
           v-show="!hideStar"
           :class="$style.currentNameStar"
-          :icon="starIcon()"
+          :icon="$store.state.bookmark.bookmarked ? 'star' : 'star-o'"
           :disabled="!$store.state.bookmark.selected || $store.state.dir.current.id == ''"
           @click="toggleStar"
         />
@@ -59,6 +59,7 @@ import PrimaryLink from 'atoms/text/link-primary16-regular.vue';
 import Icon from 'atoms/icon/font-base.vue';
 import PrimaryLabel from 'atoms/text/label-primary16-regular.vue';
 import ListButton from 'atoms/button/iconfont-base.vue';
+import { mapState } from 'vuex';
 
 export default {
   components: {
@@ -70,25 +71,12 @@ export default {
   },
   props: ['back', 'file', 'hideStar'],
   methods: {
-    isBookmarked: function(){
-      const s = this.$store.state.bookmark.selected;
-      return s && s.files.findIndex(f => {
-        return f.id == this.file.id
-      }) != -1;
-    },
     toggleStar: function(){
-      if(this.isBookmarked()){
+      if(this.$store.state.bookmark.bookmarked){
         this.$store.dispatch('bookmark/remove', this.file.id);
         return;
       }
       this.$store.dispatch('bookmark/add', this.file.id);
-    },
-    starIcon: function(){
-      const s = this.$store.state.bookmark.selected;
-      if(this.isBookmarked()){
-        return 'star';
-      }
-      return 'star-o';
     },
     backTo: function(e){
       e.preventDefault();

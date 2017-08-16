@@ -13,7 +13,7 @@ export default {
   font-size: 16px;
   font-weight: normal;
   color: $primaryColorText;
-  &:hover {
+  &:active {
     background-color: $primaryColorText;
     transition: background-color .3s;
     color: $primaryColor;
@@ -21,7 +21,7 @@ export default {
   &Disabled {
     @extend .link;
     color: $primaryColorDark;
-    &:hover {
+    &:active {
       color: $primaryColorDark;
       background-color: inherit;
     }

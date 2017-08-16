@@ -111,16 +111,17 @@ $lightenRatio: 10%;
 .accent {
   color: $primaryColorText;
   background-color: $accentColor;
-  &:hover {
+  &:active {
     background-color: darken($accentColor, $darkenRatio);
   }
-  &:active {
-    background-color: lighten($accentColor, $lightenRatio);
-  }
+  // &:active {
+  //   background-color: lighten($accentColor, $lightenRatio);
+  //   background-color: darken($accentColor, $darkenRatio);
+  // }
   &Disabled {
     @extend .accent;
     color: darken($primaryColorText, 40%);
-    &:hover {
+    &:active {
       background-color: $accentColor;
       color: darken($primaryColorText, 40%);
     }
@@ -131,17 +132,18 @@ $lightenRatio: 10%;
   color: $primaryColorText;
   background-color: $primaryColor;
   &:hover {
-    background-color: darken($primaryColor, $darkenRatio);
+    //background-color: darken($primaryColor, $darkenRatio);
   }
   &:active {
     background-color: lighten($primaryColor, $lightenRatio);
+    background-color: darken($primaryColor, $darkenRatio);
   }
   &Disabled {
     @extend .primary;
     color: darken($primaryColorText, 40%);
     &:hover {
-      background-color: $primaryColor;
-      color: darken($primaryColorText, 40%);
+      //background-color: $primaryColor;
+      //color: darken($primaryColorText, 40%);
     }
   }
 }

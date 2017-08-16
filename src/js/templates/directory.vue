@@ -42,6 +42,7 @@ import InputText from 'atoms/form/input.vue';
 import Bookmarks from 'organisms/bookmarks.vue';
 import { mapState } from 'vuex';
 import {getUrlFromFile} from 'utils/consts.js';
+import store from 'stores/index.js';
 
 export default {
   components: {
@@ -108,17 +109,6 @@ export default {
       return this.type == 'bookmark';
     },
     fetchData: function(force) {
-      if(this.type == 'bookmark'){
-        this.$store.dispatch('bookmark/select', this.id);
-        return;
-      }
-      if(this.$store.state.dir.current.id != this.id || force){
-        this.$store.dispatch('dir/dir', {
-          id: this.id||''
-        });
-      }
-      this.$store.dispatch('bookmark/lists');
-      this.$store.dispatch('file/select', this.id);
     },
     changeOrder(params){
       this.$router.replace({
@@ -159,7 +149,8 @@ export default {
             }
         }
       }
-    }
+    },
+    
   },
   data() {
     let search = false;
@@ -190,22 +181,45 @@ export default {
     }
   }),
   watch: {
-    '$route': 'fetchData',
     'dirFiles': 'updateFiles',
     'bookmarkFiles': 'updateFiles',
     'type': 'updateFiles'
   },
-  created: function() {
-    this.fetchData(true);
-  },
-  beforeRouteLeave: function(to, from, next) {
-    this.$store.commit('dir/previous', to.params.id);
-    next();
+  beforeRouteEnter: function(route, redirect, next) {
+    transitionRoute(route, null, next);
   },
   beforeRouteUpdate: function(to, from, next) {
-    this.$store.commit('dir/previous', this.$store.state.dir.current.id);
+    transitionRoute(to, from, next);
+  },
+  beforeRouteLeave: function(to, from, next) {
+    store.commit('dir/previous', to.params.id);
     next();
   },
+}
+
+function transitionRoute(to, from, next){
+  let promise = store.dispatch('bookmark/lists');
+  if(to.params.type == 'bookmark'){
+    promise = promise.then(_=>{
+      return store.dispatch('bookmark/select', to.params.id);
+    });
+  }else{
+    promise = promise.then(_=>{
+      return store.dispatch('dir/dir', {
+        id: to.params.id||''
+      });
+    }).then(_=>{
+      return store.dispatch('file/select', to.params.id);
+    });
+    if(from){
+      promise = promise.then(_=>{
+        return store.commit('dir/previous', from.params.id);
+      });
+    }
+  }
+  promise.then(_=>{
+    next();
+  });
 }
 
 </script>

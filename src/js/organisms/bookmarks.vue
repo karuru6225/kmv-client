@@ -14,8 +14,15 @@
             {{list.name}}
           </span>
           <secondary-link
+            @click="togglePlay($event, list.id)"
+            :class="$style.listItemButton"
+          >
+            <icon name="play" v-if="$store.state.bookmark.playing != list.id" />
+            <icon name="stop" v-if="$store.state.bookmark.playing == list.id" />
+          </secondary-link>
+          <secondary-link
             @click="showBookmark($event, list.id)"
-            :class="$style.listItemShow"
+            :class="$style.listItemButton"
           >
             <icon name="list" />
           </secondary-link>
@@ -25,7 +32,7 @@
         <secondary-link
           @click="toggleRandom"
           :class="$style.listFooterButton"
-          v-if="$store.state.bookmark.selected"
+          v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="random" v-if="$store.state.bookmark.random"/>
           <icon name="list-ol"  v-if="!$store.state.bookmark.random"/>
@@ -34,50 +41,42 @@
         <!--<secondary-link
           @click="prev"
           :class="$style.listFooterButton"
-          v-if="$store.state.bookmark.selected"
+          v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="fast-backward" />
         </secondary-link>-->
         <secondary-link
           @click="seekBefore"
           :class="$style.listFooterButton"
-          v-if="$store.state.bookmark.selected"
+          v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="backward" />
         </secondary-link>
         <secondary-link
           @click="oneBefore"
           :class="$style.listFooterButton"
-          v-if="$store.state.bookmark.selected"
+          v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="step-backward" />
         </secondary-link>
         <secondary-link
-          @click="togglePlay"
-          :class="$style.listFooterButton"
-          v-if="$store.state.bookmark.selected"
-        >
-          <icon name="play" v-if="!$store.state.bookmark.playing" />
-          <icon name="stop" v-if="$store.state.bookmark.playing" />
-        </secondary-link>
-        <secondary-link
           @click="oneAfter"
           :class="$style.listFooterButton"
-          v-if="$store.state.bookmark.selected"
+          v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="step-forward" />
         </secondary-link>
         <secondary-link
           @click="seekAfter"
           :class="$style.listFooterButton"
-          v-if="$store.state.bookmark.selected"
+          v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="forward" />
         </secondary-link>
         <secondary-link
           @click="next"
           :class="$style.listFooterButton"
-          v-if="$store.state.bookmark.selected"
+          v-if="$store.state.bookmark.playing != -1"
         >
           <icon name="fast-forward" />
         </secondary-link>
@@ -112,9 +111,10 @@ export default {
     oneBefore: function(e){
       e.preventDefault();
     },
-    togglePlay: function(e){
+    togglePlay: function(e, id){
       e.preventDefault();
-      this.$store.dispatch('bookmark/togglePlay');
+      e.stopPropagation();
+      this.$store.dispatch('bookmark/togglePlay', id);
     },
     oneAfter: function(e){
       e.preventDefault();
@@ -211,7 +211,7 @@ $footerButtonSize: 22px;
       flex-shrink: 1;
       flex-grow: 1;
     }
-    &Show {
+    &Button {
       flex-basis: 32px;
       flex-shrink: 0;
       flex-grow: 0;

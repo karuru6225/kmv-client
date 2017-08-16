@@ -12,9 +12,9 @@ function satilation(state, idx){
 
 function seqNext(state, idx){
   if(idx){
-    state.index = satilation(idx);
+    state.index = satilation(state, idx);
   }else{
-    state.index = satilation(state.index + 1);
+    state.index = satilation(state, state.index + 1);
   }
   const url = getUrlFromFile(state.files[ state.index ]);
   router.push(url);
@@ -30,10 +30,11 @@ export default {
   namespaced: true,
   state: {
     show: false,
-    playing: false,
+    playing: -1,
     index: 0,
     lists: [],
     selected: null,
+    bookmarked: false,
     random: true,
     files: []
   },
@@ -43,6 +44,13 @@ export default {
     },
     selectList(state, payload){
       state.selected = payload;
+    },
+    updateBookmarkStatus(state, fileId){
+      const id = fileId && state
+      const ib = state.selected && state.selected.files.findIndex(f => {
+        return f.id == fileId
+      }) != -1;
+      state.bookmarked = ib;
     },
     setFiles(state, payload){
       state.files = payload;
@@ -60,15 +68,14 @@ export default {
     toggleRandom(state){
       state.random = !state.random;
     },
-    setPlaying(state, payload){
-      if(payload !== undefined){
-        state.playing = payload;
-      }else{
-        state.playing = !state.playing;
-      }
-      if(!state.playing){
+    setPlaying(state, id){
+      console.log('setPlaying: ' + id);
+      state.playing = id;
+
+      if(state.playing == -1){
         return;
       }
+      
       if(state.random){
         ranNext(state);
       }else{
@@ -85,12 +92,19 @@ export default {
     },
     unselect({commit}){
       commit('selectList', null);
-      commit('setFiles', []);
+    },
+    select({commit, state, rootState}, id){
+      axios.get(`list/${id}`)
+        .then( res => {
+          commit('selectList', res.data);
+          const fid = rootState.file.current.id;
+          commit('updateBookmarkStatus', fid);
+        });
     },
     add({commit, state, dispatch}, fileId){
       if(state.selected){
         axios.post(`list/${state.selected.id}`, {fileId})
-          .then( _ => {
+          .then(_=>{
             dispatch('select', state.selected.id);
           });
       }
@@ -98,27 +112,24 @@ export default {
     remove({commit, state, dispatch}, fileId){
       if(state.selected){
         axios.delete(`list/${state.selected.id}/${fileId}`)
-          .then( _ => {
+          .then(_=>{
             dispatch('select', state.selected.id);
           });
       }
     },
-    select({commit, state}, id){
-      axios.get(`list/${id}`)
-        .then( res => {
-          commit('selectList', res.data);
-        });
-      axios.get(`list/${id}/files`)
-        .then( res => {
-          commit('setFiles', res.data);
-        });
-    },
-    togglePlay({commit, state, dispatch}){
-      if(state.selected){
-        commit('setPlaying');
+    togglePlay({commit, state, dispatch}, id){
+      console.log(id);
+      if(state.playing == id){
+        commit('setFiles', []);
+        commit('setPlaying', -1);
         return;
       }
-      commit('setPlaying', false);
+      axios.get(`list/${id}/files`)
+        .then( res => {
+          console.log('after axiosgetlistidfiles: ' + id);
+          commit('setFiles', res.data);
+          commit('setPlaying', id);
+        });
     }
   }
 }

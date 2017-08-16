@@ -61,6 +61,7 @@ const sizeIds = [
   '800',
   '640',
   'Real',
+  'Full',
 ];
 
 let seekTimer;
@@ -179,7 +180,7 @@ export default {
       hls.loadSource(this.$data.source);
       hls.attachMedia(this.$refs.video);
       this.$data.hls = hls;
-      this.setVolume(0.2);
+      this.setVolume(this.$data.volume);
       seekTimer = setInterval(this.updateSeek.bind(this), 500);
 
       this.$store.dispatch('movie/meta', {
@@ -234,7 +235,7 @@ export default {
       buffered: [],
       currentTime: 0,
       duration: 1,
-      volume: 1,
+      volume: 0.2,
       hls: null,
       hoverTime: ''
     };
@@ -288,6 +289,9 @@ export default {
   &Real {
     background-image: url(img/screen-size-real.png);
   }
+  &Full {
+    background-image: url(img/screen-size-full.png);
+  }
 }
 
 .mainArea {
@@ -314,6 +318,12 @@ $controllerHeight: 16px;
     width: 1024px;
   }
   &Real {
+  }
+  &Full {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
   }
 }
 

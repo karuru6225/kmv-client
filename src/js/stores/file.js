@@ -19,10 +19,11 @@ export default {
       axios.get('file/' + id)
         .then( res => {
           commit('setFile', res.data);
+          commit('bookmark/updateBookmarkStatus', id, {root:true});
         })
         .catch(err => {
           console.log(err);
         });
     }
-  }
+  },
 }
