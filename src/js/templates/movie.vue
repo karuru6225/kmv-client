@@ -175,7 +175,11 @@ export default {
         this.$data.hls = null;
         clearInterval(seekTimer);
       }
-      this.$data.source = ApiEntry + `file/${this.$props.id}/direct?open&token=${this.$store.state.auth.token}`;
+      if(process.env.NODE_ENV == 'production'){
+        this.$data.source = ApiEntry + `file/${this.$props.id}/direct?open`;
+      }else{
+        this.$data.source = ApiEntry + `file/${this.$props.id}/direct?open&token=${this.$store.state.auth.token}`;
+      }
       const hls = new Hls({
         maxBufferLength: 300
       });
@@ -209,22 +213,22 @@ export default {
       this.$data.duration = v.duration;
     },
     updateHoverTime: function(e){
-      const v = this.$refs.video;
-      const $seekbar = $(this.$refs.seekbar);
-      const seekTime = v.duration * e.clientX / $seekbar.width();
+      const seekTime = this.getSeekTime(e.clientX);
       this.$data.hoverTime = this.formatTime(seekTime);
     },
     hideHoverTime: function(){
       this.$data.hoverTime = '';
     },
     seek: function(e){
-      const v = this.$refs.video;
-      const $seekbar = $(this.$refs.seekbar);
-      console.log($seekbar.offset().left);
-      const seekTime = v.duration * (e.clientX -$seekbar.offset().left) / $seekbar.width();
+      const seekTime = this.getSeekTime(e.clientX);
       v.currentTime = seekTime;
       this.$data.currentTime = seekTime;
     },
+    getSeekTime: function(x){
+      const v = this.$refs.video;
+      const $seekbar = $(this.$refs.seekbar);
+      return v.duration * (x -$seekbar.offset().left) / $seekbar.width();
+    }
   },
   data() {
     const initialIdx = 0;
