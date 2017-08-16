@@ -181,7 +181,7 @@ export default {
         this.$data.source = ApiEntry + `file/${this.$props.id}/direct?open&token=${this.$store.state.auth.token}`;
       }
       const hls = new Hls({
-        maxBufferLength: 300
+        maxBufferLength: 600
       });
       hls.loadSource(this.$data.source);
       hls.attachMedia(this.$refs.video);
@@ -221,7 +221,7 @@ export default {
     },
     seek: function(e){
       const seekTime = this.getSeekTime(e.clientX);
-      v.currentTime = seekTime;
+      this.$refs.video.currentTime = seekTime;
       this.$data.currentTime = seekTime;
     },
     getSeekTime: function(x){
