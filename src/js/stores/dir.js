@@ -23,9 +23,13 @@ export default {
   state: {
     files: [],
     current: {},
-    previousId: ''
+    previousId: '',
+    loading: false,
   },
   mutations: {
+    setLoading(state, isLoading){
+      state.loading = isLoading;
+    },
     cd(state, payload) {
       state.files = payload.files;
       state.current = payload.current;
@@ -36,6 +40,11 @@ export default {
   },
   actions: {
     refresh({commit}, payload) {
+      commit('setLoading', true);
+      commit('cd', {
+        current: {},
+        files: []
+      });
       axios.put('dir/' + payload.id)
         .then( res => {
           const files = getFilesFromResponse(res);
@@ -46,12 +55,19 @@ export default {
           if(payload.cb){
             payload.cb();
           }
+          commit('setLoading', false);
         })
         .catch(err => {
           console.log(err);
+          commit('setLoading', false);
         });
     },
     dir({commit}, payload) {
+      commit('setLoading', true);
+      commit('cd', {
+        current: {},
+        files: []
+      });
       axios.get('dir/' + payload.id)
         .then( res => {
           const files = getFilesFromResponse(res);
@@ -62,9 +78,11 @@ export default {
           if(payload.cb){
             payload.cb();
           }
+          commit('setLoading', false);
         })
         .catch(err => {
           console.log(err);
+          commit('setLoading', false);
         });
     }
   }

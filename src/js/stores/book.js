@@ -23,9 +23,13 @@ export default {
     imageStatuses: [],
     loaded: 0,
     currentPage: 0,
-    fileCount: null
+    fileCount: null,
+    loading: false
   },
   mutations: {
+    setLoading(state, isLoading){
+      state.loading = isLoading;
+    },
     initEntries(state) {
       state.id = '';
       state.parentId = '';
@@ -117,15 +121,18 @@ export default {
       console.log('stopLoadImages');
       clearTimeout(loaderTimer);
       commit('initEntries');
+      commit('setLoading', true);
       axios.get(`${payload.type}/${payload.id}`)
         .then( res => {
           commit('updateEntries', {
             data: res.data,
             page: payload.page
           });
+          commit('setLoading', false);
         })
         .catch(err => {
           console.log(err);
+          commit('setLoading', false);
         });
     },
     stopLoadImages({commit}){
@@ -139,7 +146,7 @@ export default {
       }
       const id = payload.id;
       const type = payload.type;
-      let bufferLength = 5;
+      let bufferLength = 10;
       loaderTimer = setInterval(() => {
         let loading = 0;
         let i = 0;
@@ -147,7 +154,13 @@ export default {
           return;
         }
         for(i = 0; i < state.fileCount; i++){
-          const fid = (state.currentPage + i + state.fileCount) % state.fileCount;
+          // 現在位置のページから前後に広がるように画像をロードする
+          let fid;
+          if(i%2 == 0){
+            fid = (state.currentPage + i/2) % state.fileCount;
+          }else{
+            fid = (state.currentPage - (i-1)/2 + state.fileCount) % state.fileCount;
+          }
           if( state.imageStatuses[fid] == LOADING ){
             if( i == 0 ){
               if(bufferLength < 20){

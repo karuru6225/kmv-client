@@ -1,5 +1,6 @@
 <template>
   <div class="page" :style="getInitialStyle()">
+    <loading v-if="$store.state.dir.loading" />
     <common-header
       :file="getHeaderFile()"
       :hideStar="type == 'bookmark'"
@@ -43,6 +44,7 @@ import Bookmarks from 'organisms/bookmarks.vue';
 import { mapState } from 'vuex';
 import {getUrlFromFile} from 'utils/consts.js';
 import store from 'stores/index.js';
+import Loading from 'atoms/panel/loading.vue';
 
 export default {
   components: {
@@ -52,6 +54,7 @@ export default {
     FileList,
     InputText,
     Bookmarks,
+    Loading,
   },
   props: ['id', 'type'],
   methods: {
@@ -155,10 +158,6 @@ export default {
   data() {
     let search = false;
     let searchWord = '';
-    if(this.$route.query.search){
-      search = true;
-      searchWord = this.$route.query.search;
-    }
     let sort = 'name';
     let asc = true;
     if(this.$route.query.sort){
@@ -183,7 +182,16 @@ export default {
   watch: {
     'dirFiles': 'updateFiles',
     'bookmarkFiles': 'updateFiles',
-    'type': 'updateFiles'
+    'type': 'updateFiles',
+    searchWord: function(){
+      this.$refs.search.$emit('change', this.$data.searchWord);
+    }
+  },
+  mounted: function(){
+    if(this.$route.query.search){
+      this.$data.search = true;
+      this.$data.searchWord = this.$route.query.search;
+    }
   },
   beforeRouteEnter: function(route, redirect, next) {
     transitionRoute(route, null, next);

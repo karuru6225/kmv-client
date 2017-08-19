@@ -19,6 +19,17 @@ export default {
     return {
       value: this.defaultValue
     }
+  },
+  watch: {
+    defaultValue: function(){
+      console.log('watching defaultValue');
+      this.$data.value = defaultValue;
+    }
+  },
+  created: function(){
+    this.$on('change', function(value){
+      this.$data.value = value;
+    });
   }
 }
 </script>

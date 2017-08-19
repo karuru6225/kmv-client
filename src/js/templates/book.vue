@@ -1,16 +1,17 @@
 <template>
   <div class="page">
+    <loading v-if="$store.state.book.loading" />
     <common-header
       :back=true
       :file="$store.state.file.current"
-      :class="$data.showHeader ? $style.header : $style.headerHidden"
+      :class="$data.showUIs ? $style.header : $style.headerHidden"
     />
     <div :class="$style.body">
       <bookmarks
         :class="$style.bookmark"
         :lists="$store.state.bookmark.lists"
       />
-      <div :class="$style.main" ref="imageArea" @click="e => click(e)" @mousemove="mousemove" :style="$data.imageAreaStyle">
+      <div :class="$style.imageArea" ref="imageArea" @click="e => click(e)" @mousemove="mousemove" :style="$data.imageAreaStyle">
         <template v-for="img in $data.images">
           <img :src="img.src" :style="getImageStyle(img)"/>
         </template>
@@ -31,6 +32,7 @@ import ListButton from 'atoms/button/iconfont-base.vue';
 import Bookmarks from 'organisms/bookmarks.vue';
 import { mapState } from 'vuex';
 import $ from 'jquery';
+import Loading from 'atoms/panel/loading.vue';
 
 export default {
   components: {
@@ -38,6 +40,7 @@ export default {
     VertDiv,
     ListButton,
     Bookmarks,
+    Loading,
   },
   props: ['id', 'type'],
   methods: {
@@ -50,11 +53,16 @@ export default {
       }
     },
     getStatusBarClass(){
+      const classes = [];
       if(this.$data.leftFirst){
-        return this.$style.loadStatus;
+        classes.push(this.$style.loadStatus);
       }else{
-        return this.$style.loadStatusReverse;
+        classes.push(this.$style.loadStatusReverse);
       }
+      if(this.$data.showUIs){
+        classes.push(this.$style.loadStatusActive);
+      }
+      return classes;
     },
     getLoadStatClass(stat, idx) {
       if(idx <= this.currentPage){
@@ -126,7 +134,7 @@ export default {
       this.toggleFirst();
     },
     centerMiddleAction(){
-      this.$data.showHeader = !this.$data.showHeader;
+      this.$data.showUIs = !this.$data.showUIs;
     },
     centerBottomAction(){
       this.onePage();
@@ -190,9 +198,7 @@ export default {
           break;
         case 32://space
           this.centerMiddleAction();
-        default:
-          console.log('keyCode: ' + e.keyCode);
-          return;
+          break;
       }
     },
     getImageStyle(img){
@@ -248,9 +254,9 @@ export default {
     mousemove(e) {
       /*
       if(e.clientY < 44) {
-        this.$data.showHeader = true;
+        this.$data.showUIs = true;
       }else{
-        this.$data.showHeader = false;
+        this.$data.showUIs = false;
       }//*/
       const {x, y} = this.getArea(e);
 
@@ -278,7 +284,7 @@ export default {
   data() {
     return {
       leftFirst: false,
-      showHeader: false,
+      showUIs: false,
       leftFlip: null,
       rightFlip: null,
       spread: false,
@@ -323,35 +329,42 @@ export default {
 .header {
   margin-top: 0px;
   transition: margin-top .3s;
+  position: fixed;
   &Hidden {
     @extend .header;
     margin-top: -44px;
   }
 }
 
-.main {
+$seekBarHeight: 4px;
+.imageArea {
   display: flex;
   flex-grow: 1;
   flex-shrink: 1;
   margin: 0 auto;
-  height: calc(100vh - 4px);
+  height: calc(100vh - $seekBarHeight);
   justify-content: center;
-  align-content: flex-start;
+  align-items: center;
   background-color: #F0F0F0;
 }
 
 .loadStatus {
   display: flex;
   width: 100vw;
-  height: 4px;
+  height: $seekBarHeight;
   position: absolute;
   bottom: 0;
+  left: 0;
   > * {
     flex-grow: 1;
   }
-  transition: height .3s;
-  &:hover {
+  transition: height .3s, bottom .3s;
+  &Active,
+  &Hover {
     height: 16px;
+  }
+  &Active {
+    bottom: 8px;
   }
   &Reverse {
     @extend .loadStatus;
@@ -381,9 +394,8 @@ export default {
 .body {
   display: flex;
   align-items: stretch;
-}
-
-.bookmark {
+  width: 100vw;
+  height: 100vh;
 }
 
 </style>
