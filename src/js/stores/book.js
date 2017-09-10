@@ -57,6 +57,9 @@ export default {
       Vue.set(state.imageStatuses, +payload.fid, LOADING);
     },
     setImage(state, payload){
+      if(payload.id != state.id) {
+        return;
+      }
       Vue.set(state.imageStatuses, +payload.fid, payload.status);
       state.images[+payload.fid] = payload.content;
       let loaded = 0;
@@ -205,6 +208,7 @@ export default {
                 return img;
               }else{
                 commit('setImage', {
+                  id,
                   fid,
                   content: null,
                   status: BEFORE_LOAD
@@ -215,6 +219,7 @@ export default {
           }).then(img => {
             if(img){
               commit('setImage', {
+                id,
                 fid,
                 content: img,
                 status: LOADED
@@ -222,6 +227,7 @@ export default {
             }
           }).catch(img => {
             commit('setImage', {
+              id,
               fid,
               content: null,
               status: BEFORE_LOAD

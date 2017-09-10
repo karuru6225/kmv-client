@@ -23,7 +23,7 @@
       </primary-link>
       <vert-div :class="$style.divider"/>
       <primary-label :class="$style.currentName">
-        <list-button color="primary"
+        <icon-button color="primary"
           v-show="!hideStar"
           :class="$style.currentNameStar"
           :icon="$store.state.bookmark.bookmarked ? 'star' : 'star-o'"
@@ -35,6 +35,11 @@
         </span>
       </primary-label>
       <slot></slot>
+      <!--<vert-div :class="$style.divider"/>
+        <icon-button color="primary"
+          icon="cog"
+          @click="configure"
+          />-->
       <vert-div :class="$style.divider"/>
       <primary-link
         @click="logout($event)"
@@ -51,7 +56,7 @@ import VertDiv from 'atoms/block/vertical-divider.vue';
 import PrimaryLink from 'atoms/text/link-primary16-regular.vue';
 import Icon from 'atoms/icon/font-base.vue';
 import PrimaryLabel from 'atoms/text/label-primary16-regular.vue';
-import ListButton from 'atoms/button/iconfont-base.vue';
+import IconButton from 'atoms/button/iconfont-base.vue';
 import { mapState } from 'vuex';
 
 export default {
@@ -60,7 +65,7 @@ export default {
     VertDiv,
     PrimaryLink,
     PrimaryLabel,
-    ListButton,
+    IconButton,
   },
   props: ['back', 'file', 'hideStar'],
   methods: {

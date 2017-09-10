@@ -20,10 +20,10 @@ function seqNext(state, idx){
   router.push(url);
 }
 
-function ranNext(state){
-  state.index = Math.floor(Math.random() * state.files.length);
-  const url = getUrlFromFile(state.files[ state.index ]);
-  router.push(url);
+function swapFile(state, a, b){
+  const tmp = state.files[a];
+  Vue.set(state.files, a, state.files[b]);
+  Vue.set(state.files, b, tmp);
 }
 
 export default {
@@ -59,11 +59,7 @@ export default {
       state.show = !state.show;
     },
     next(state){
-      if(state.random){
-        ranNext(state);
-      }else{
-        seqNext(state);
-      }
+      seqNext(state);
     },
     toggleRandom(state){
       state.random = !state.random;
@@ -77,10 +73,12 @@ export default {
       }
       
       if(state.random){
-        ranNext(state);
-      }else{
-        seqNext(state, 0);
+        for(let i = 0; i < state.files.length; i++){
+          const idx = Math.floor(Math.random() * state.files.length);
+          swapFile(state, i, idx);
+        }
       }
+      seqNext(state, 0);
     }
   },
   actions: {

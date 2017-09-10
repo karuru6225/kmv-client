@@ -3,7 +3,7 @@
     <common-header
       :back=true
       :file="$store.state.file.current"
-      :class="$data.headerClass"
+      :class="$style.header"
     >
       <vert-div />
       <i-button :size="28" :class="$data.sizeButtonClass" @click="toggleSize"/>
@@ -13,9 +13,13 @@
         :class="$style.bookmark"
         :lists="$store.state.bookmark.lists"
       />
-      <div :class="$style.mainArea" @wheel="changeVolume" @mousemove="mousemove">
+      <div :class="$style.mainArea">
         <video ref="video" :class="$data.videoClass" @click="togglePlay"/>
-        <div :class="$style.seekContainer" @click="e => seek(e)" ref="seekbar" @mousemove="updateHoverTime" @mouseout="hideHoverTime">
+        <div :class="$style.seekContainer"
+          @click="e => seek(e)" ref="seekbar"
+          @mousemove="updateHoverTime"
+          @mouseout="hideHoverTime"
+        >
           <template v-for="loaded in $data.buffered">
             <div :class="$style.seekLoaded" :style="{
               left: (loaded.start*100) + '%',
@@ -88,13 +92,6 @@ export default {
         fh = ('0' + Math.floor(_s / 3600) + ':').substr(-3);
       }
       return fh + fm + fs;
-    },
-    mousemove(e) {
-      if(e.clientY < 44) {
-        this.$data.headerClass = this.$style.header;
-      }else{
-        this.$data.headerClass = this.$style.headerHidden;
-      }
     },
     toggleSize() {
       const len = sizeIds.length;
@@ -233,7 +230,6 @@ export default {
   data() {
     const initialIdx = 0;
     return {
-      headerClass: this.$style.headerHidden,
       source: '',
       videoSizeIdx: initialIdx,
       sizeButtonClass: this.getSizeButtonClass(initialIdx),
@@ -301,7 +297,7 @@ export default {
 }
 
 .mainArea {
-  height: 100vh;
+  height: calc(100vh - 44px);
   display: flex;
   flex-direction: column;
   align-items: stretch;
