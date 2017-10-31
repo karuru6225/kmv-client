@@ -46,6 +46,11 @@
           </div>
           <span>{{$data.hoverTime}}</span>
         </div>
+        <div>
+          <template v-for="(freq, idx) in $data.freqs">
+            <div><span style="display:inline-block;width:4em;">{{freq}} :</span><input type="range" ref="fGain" min="-50" max="50" size="10" @change="updateFilter" value="0"/><span>{{$data.fGain[idx]}}</span></div>
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -195,6 +200,34 @@ export default {
       if(this.$store.state.bookmark.playing){
         this.$refs.video.play();
       }
+
+      const ac = new AudioContext();
+      const v = this.$refs.video;
+      const as = new MediaElementAudioSourceNode(ac, {
+        mediaElement: v
+      });
+      this.$data.filter = [];
+      let cNode = as;
+      this.$data.freqs.forEach( freq => {
+        const f = ac.createBiquadFilter();
+        f.type = 'peaking';
+        f.frequency.value = freq;
+        f.Q.value = 1.4;
+        cNode.connect(f);
+        cNode = f;
+        this.$data.filter.push(f);
+      });
+      this.updateFilter();
+      cNode.connect(ac.destination);
+    },
+    updateFilter: function() {
+      let gains = [];
+      console.log(this.$refs);
+      this.$data.freqs.forEach( (freq, idx) => {
+        gains[idx] = parseFloat(this.$refs.fGain[idx].value);
+        this.$data.filter[idx].gain.value = gains[idx];
+      });
+      this.$data.fGain = gains;
     },
     updateSeek: function() {
       const v = this.$refs.video;
@@ -265,7 +298,13 @@ export default {
       duration: 1,
       volume: 0.2,
       hls: null,
-      hoverTime: ''
+      hoverTime: '',
+      filter: [],
+      fGain: [],
+      freqs: [
+        32, 64, 128, 256, 512,
+        1024, 2048, 4096, 8192, 16384
+      ]
     };
   },
   watch: {
