@@ -7,10 +7,15 @@ import {getUrlFromFile} from 'utils/consts.js';
 Vue.use(Vuex);
 
 function satilation(state, idx){
-  return Math.min(Math.max(0, idx), state.files.length - 1);
+  return (idx + state.files.length) % state.files.length;
+  //return Math.min(Math.max(0, idx), state.files.length - 1);
 }
 
 function seqNext(state, idx){
+  if(state.playing == -1){
+    return;
+  }
+  console.log('seqNext');
   if(idx){
     state.index = satilation(state, idx);
   }else{
@@ -59,6 +64,7 @@ export default {
       state.show = !state.show;
     },
     next(state){
+      console.log('store bookmark.next');
       seqNext(state);
     },
     toggleRandom(state){
@@ -78,10 +84,20 @@ export default {
           swapFile(state, i, idx);
         }
       }
+      console.log('store bookmark.setPlaying');
       seqNext(state, 0);
     }
   },
   actions: {
+    createList({commit}, lname){
+      axios.post('list', {name: lname})
+        .then(_=>{
+          return axios.get('list');
+        })
+        .then(res => {
+          commit('setLists', res.data);
+        });
+    },
     lists({commit}){
       axios.get('list')
         .then( res => {

@@ -92,7 +92,11 @@ export default {
       const prevCurrent = this.currentPage;
       this.$store.commit('book/setCurrentPage', page);
       this.pageUpdate();
-      if(page > this.currentPage && prevCurrent == (this.fileCount - 1) ){
+      // 最後のページに到達した上で、次が押され、Entryがロード済みの時
+      if( page > this.currentPage &&
+            prevCurrent == (this.fileCount - 1) &&
+            this.fileCount != 0 && this.currentPage != 0 )
+        {
         if(this.$store.state.bookmark.playing != -1){
           this.$store.commit('bookmark/next');
         }
@@ -181,24 +185,27 @@ export default {
         this.rightAction();
       }
     },
-    keyup(e) {
-      e.preventDefault();
+    keydown(e) {
       switch(e.keyCode){
-        case 37://left
+        case 37:// left
           this.leftAction();
           break;
-        case 39://right
+        case 39:// right
           this.rightAction();
           break;
-        case 38://up
+        case 38:// up
           this.centerTopAction();
           break;
-        case 40://down
+        case 40:// down
           this.centerBottomAction();
           break;
-        case 32://space
+        case 32:// space
           this.centerMiddleAction();
           break;
+        case 13:// Enter
+          break;
+        default:
+          console.log(e.keyCode);
       }
     },
     getImageStyle(img){
@@ -293,6 +300,7 @@ export default {
     };
   },
   computed: mapState({
+    stateId: s => s.book.id,
     fileCount: s => s.book.fileCount,
     currentPage: s => s.book.currentPage,
     loaded: s => s.book.loaded,
@@ -307,14 +315,21 @@ export default {
   },
   created: function() {
     this.fetchData();
-    window.addEventListener('keyup', this.keyup.bind(this));
+    window.addEventListener('keydown', this.keydown);
   },
   mounted: function() {
     console.log(this.$route);
     console.log(this.$router);
   },
+  activated: function(){
+    console.log('book activated');
+  },
+  deactivated: function(){
+    console.log('book deactivated');
+  },
   beforeDestroy: function() {
-    window.removeEventListener('keyup', this.keyup.bind(this));
+    console.log('book beforeDestroy');
+    window.removeEventListener('keydown', this.keydown);
     this.$store.dispatch('book/stopLoadImages', {
       id: this.id,
       type: this.type,

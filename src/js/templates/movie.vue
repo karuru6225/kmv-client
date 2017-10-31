@@ -16,7 +16,7 @@
       <div :class="$style.mainArea">
         <video ref="video" :class="$data.videoClass" @click="togglePlay"/>
         <div :class="$style.seekContainer"
-          @click="e => seek(e)" ref="seekbar"
+          @click="e => clickSeekbar(e)" ref="seekbar"
           @mousemove="updateHoverTime"
           @mouseout="hideHoverTime"
         >
@@ -216,15 +216,41 @@ export default {
     hideHoverTime: function(){
       this.$data.hoverTime = '';
     },
-    seek: function(e){
-      const seekTime = this.getSeekTime(e.clientX);
-      this.$refs.video.currentTime = seekTime;
-      this.$data.currentTime = seekTime;
+    clickSeekbar: function(e){
+      this.seek(this.getSeekTime(e.clientX));
+    },
+    seek: function(time){
+      this.$refs.video.currentTime = time;
+      this.$data.currentTime = time;
     },
     getSeekTime: function(x){
       const v = this.$refs.video;
       const $seekbar = $(this.$refs.seekbar);
       return v.duration * (x -$seekbar.offset().left) / $seekbar.width();
+    },
+    keydown(e) {
+      const v = this.$refs.video;
+      switch(e.keyCode){
+        case 37:// left
+          this.seek(Math.max(0, v.currentTime - 10));
+          break;
+        case 39:// right
+          this.seek(Math.min(v.duration, v.currentTime + 10));
+          break;
+        case 38:// up
+          this.setVolume(v.volume + 0.05);
+          break;
+        case 40:// down
+          this.setVolume(v.volume - 0.05);
+          break;
+        case 13:// Enter
+          break;
+        case 32:// space
+          this.togglePlay();
+          break;
+        default:
+          console.log(e.keyCode);
+      }
     }
   },
   data() {
@@ -245,21 +271,32 @@ export default {
   watch: {
     '$route': 'fetchData',
   },
+  created: function(){
+    window.addEventListener('keydown', this.keydown);
+    window.addEventListener('mouseup', this.volumeMouseup);
+    window.addEventListener('mousemove', this.volumeMousemove);
+  },
   mounted: function() {
     this.$refs.video.addEventListener('ended', () => {
       if(this.$store.state.bookmark.playing){
         this.$store.commit('bookmark/next');
       }
     });
-    window.addEventListener('mouseup', this.volumeMouseup.bind(this));
-    window.addEventListener('mousemove', this.volumeMousemove.bind(this));
     this.fetchData();
   },
+  activated: function(){
+    console.log('book activated');
+  },
+  deactivated: function(){
+    console.log('book deactivated');
+  },
   beforeDestroy: function() {
+    console.log('movie beforeDestroy');
     this.$data.hls.destroy();
     clearInterval(seekTimer);
-    window.removeEventListener('mouseup', this.volumeMouseup.bind(this));
-    window.removeEventListener('mousemove', this.volumeMousemove.bind(this));
+    window.removeEventListener('keydown', this.keydown);
+    window.removeEventListener('mouseup', this.volumeMouseup);
+    window.removeEventListener('mousemove', this.volumeMousemove);
   }
 }
 

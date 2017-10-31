@@ -65,6 +65,7 @@ export default {
           break;
         case 'directory':
         default:
+          console.log('directory.select');
           let url = getUrlFromFile(file);
           this.$store.dispatch('file/select', file.id);
           this.$router.push(url);

@@ -58,6 +58,7 @@ export default {
     },
     setImage(state, payload){
       if(payload.id != state.id) {
+        console.log(payload);
         return;
       }
       Vue.set(state.imageStatuses, +payload.fid, payload.status);
@@ -121,16 +122,19 @@ export default {
   },
   actions: {
     files({commit}, payload){
-      console.log('stopLoadImages');
       clearTimeout(loaderTimer);
       commit('initEntries');
       commit('setLoading', true);
       axios.get(`${payload.type}/${payload.id}`)
         .then( res => {
-          commit('updateEntries', {
-            data: res.data,
-            page: payload.page
-          });
+          if( res.data.fileCount == 0 ){
+            console.log('commit bookmark/next from book.js');
+            commit('bookmark/next', null, {root:true});
+          }else{
+            commit('updateEntries', {
+              data: res.data
+            });
+          }
           commit('setLoading', false);
         })
         .catch(err => {
@@ -185,25 +189,16 @@ export default {
           const base = axios.defaults.baseURL;
           const w = window.innerWidth * 2;
           const h = window.innerHeight * 2;
-          const path = `${type}/${id}/${fid}/resize/${w}/${h}`;
-          //const path = `${type}/${id}/${fid}`;
+          const pathResized = `${type}/${id}/${fid}/resize/${w}/${h}`;
+          const path = `${type}/${id}/${fid}`;
 
-          // CORSのpreflightアクセスを防ぐために一時的にカスタムヘッダーを無効にする。
-          // サーバー側で画像リサイズ用のURLのときの、preflightアクセスに対応した
-          //const token = axios.defaults.headers.common['x-kmv-token'];
-          //delete axios.defaults.headers.common['x-kmv-token'];
-          axios.get(path, {
-            responseType: 'blob',
-            /*params: {
-              token: token
-            }*/
-          }).then(res => {
+          const successLoadImg = (res) => {
             return new Promise( function(resolve, reject) {
               const url = window.URL || window.webkitURL;
               if(url){
                 const img = new Image();
                 img.onload = () => resolve(img);
-                img.onerror = () => reject();
+                img.onerror = reject;
                 img.src = url.createObjectURL(res.data);
                 return img;
               }else{
@@ -216,7 +211,8 @@ export default {
                 return false;
               }
             });
-          }).then(img => {
+          };
+          const successSetImg = (img) => {
             if(img){
               commit('setImage', {
                 id,
@@ -225,24 +221,45 @@ export default {
                 status: LOADED
               });
             }
-          }).catch(img => {
-            commit('setImage', {
-              id,
-              fid,
-              content: null,
-              status: BEFORE_LOAD
-            });
+          };
+          axios.get(pathResized, {
+            responseType: 'blob',
+          }).then(successLoadImg)
+          .then(successSetImg)
+          .catch((res) => {
+            console.log('load error');
+            if(res.response.status == 415) {
+              console.log('load base image');
+              axios.get(path, {
+                responseType: 'blob',
+              }).then(successLoadImg)
+              .then(successSetImg)
+              .catch(_ => {
+                commit('setImage', {
+                  id,
+                  fid,
+                  content: null,
+                  status: BEFORE_LOAD
+                });
+              });
+            }else{
+              commit('setImage', {
+                id,
+                fid,
+                content: null,
+                status: BEFORE_LOAD
+              });
+            }
           });
-          //axios.defaults.headers.common['x-kmv-token'] = token;
 
           commit('startedLoadImage', {
             fid
           });
           loading++;
         }
-        if( i == state.fileCount ){
-          clearInterval(loaderTimer);
-        }
+        // if( i == state.fileCount ){
+        //   clearInterval(loaderTimer);
+        // }
       }, loaderInterval);
     }
   }

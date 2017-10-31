@@ -27,7 +27,7 @@
           v-show="!hideStar"
           :class="$style.currentNameStar"
           :icon="$store.state.bookmark.bookmarked ? 'star' : 'star-o'"
-          :disabled="!$store.state.bookmark.selected || $store.state.dir.current.id == ''"
+          :disabled="!$store.state.bookmark.selected || file.id == ''"
           @click="toggleStar"
         />
         <span :class="$style.currentNameText">
@@ -94,7 +94,22 @@ export default {
     logout: function(e) {
       e.preventDefault();
       this.$store.dispatch('auth/logout');
+    },
+    keyup(e) {
+      switch(e.keyCode){
+        case 83:// s
+          this.toggleStar();
+          break;
+        default:
+          console.log(e.keyCode);
+      }
     }
+  },
+  created: function() {
+    window.addEventListener('keyup', this.keyup);
+  },
+  beforeDestroy: function() {
+    window.removeEventListener('keyup', this.keyup);
   }
 }
 
