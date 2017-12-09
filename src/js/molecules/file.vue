@@ -1,6 +1,7 @@
 <template>
   <tr :class="$style.container" @click="$emit('click')">
     <td :class="$style.name"> <icon :name="getIconName()" /> <span>{{ file.name }}</span> </td>
+    <td :class="$style.keyword"> <span>{{ file.keyword }}</span> </td>
     <td :class="$style.mtime"> <span>{{ formatDate(file.mtime) }}</span> </td>
     <td :class="$style.size"> <span>{{ getSize(file) }}</span> </td>
   </tr>
@@ -69,6 +70,10 @@ export default {
 }
 
 .name {
+  padding-left: 12px;
+}
+
+.keyword {
   padding-left: 12px;
 }
 

@@ -13,7 +13,8 @@ function getFilesFromResponse(res){
       mtime: new Date(item.mtime),
       name: item.name,
       size: item.size,
-      type: item.type
+      type: item.type,
+      keyword: item.keyword
     }
   });
 }

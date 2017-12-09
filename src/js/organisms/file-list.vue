@@ -8,6 +8,11 @@
             <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'name'" />
             <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'name'" />
           </th>
+          <th :class="$style.theadTh" @click="sortFiles('keyword')" ref="keyword">
+            <span>キーワード</span>
+            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'keyword'" />
+            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'keyword'" />
+          </th>
           <th :class="$style.theadTh" @click="sortFiles('mtime')" ref="mtime">
             <span>変更日</span>
             <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'mtime'" />
@@ -38,6 +43,11 @@
             <span>名前</span>
             <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'name'" />
             <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'name'" />
+          </th>
+          <th :class="$style.theadTh" @click="sortFiles('keyword')" ref="keywordFixed">
+            <span>キーワード</span>
+            <icon name="sort-amount-asc" :class="$style.sortIcon" v-if="asc && sort == 'keyword'" />
+            <icon name="sort-amount-desc" :class="$style.sortIcon" v-if="!asc && sort == 'keyword'" />
           </th>
           <th :class="$style.theadTh" @click="sortFiles('mtime')" ref="mtimeFixed">
             <span>変更日</span>
@@ -114,6 +124,11 @@ export default {
         case 'name':
           return (a, b) => order * naturalCompare(a.name, b.name);
           break;
+        case 'keyword':
+          return (a, b) => {
+            return order * (naturalCompare(a.keyword, b.keyword) || naturalCompare(a.name, b.name));
+          }
+          break;
         case 'mtime':
           return (a, b) => {
             if( !(a.mtime instanceof Date) ){
@@ -145,7 +160,7 @@ export default {
       return this.files.slice().sort( this.getSortFunc(sort, order) );
     },
     resize(){
-      const cols = [ 'name', 'mtime', 'size' ];
+      const cols = [ 'name', 'mtime', 'size', 'keyword'];
       cols.forEach( c => {
         $(this.$refs[c+'Fixed']).width( $(this.$refs[c]).width() );
       });
