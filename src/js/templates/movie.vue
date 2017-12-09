@@ -46,9 +46,10 @@
           </div>
           <span>{{$data.hoverTime}}</span>
         </div>
-        <div>
+        <div v-if="false">
+          <div><span style="display:inline-block;width:4em;">pan :</span><input type="range" ref="fPan" min="-1" max="1" step="0.1" @change="updateFilter" value="0"/><span>{{$data.fPanV}}</span></div>
           <template v-for="(freq, idx) in $data.freqs">
-            <div><span style="display:inline-block;width:4em;">{{freq}} :</span><input type="range" ref="fGain" min="-50" max="50" size="10" @change="updateFilter" value="0"/><span>{{$data.fGain[idx]}}</span></div>
+            <div><span style="display:inline-block;width:4em;">{{freq}} :</span><input type="range" ref="fGain" min="-5" max="5" step="0.1" @change="updateFilter" value="0"/><span>{{$data.fGain[idx]}}</span></div>
           </template>
         </div>
       </div>
@@ -206,6 +207,7 @@ export default {
       const as = new MediaElementAudioSourceNode(ac, {
         mediaElement: v
       });
+      this.$data.fPan = ac.createStereoPanner();
       this.$data.filter = [];
       let cNode = as;
       this.$data.freqs.forEach( freq => {
@@ -218,16 +220,17 @@ export default {
         this.$data.filter.push(f);
       });
       this.updateFilter();
-      cNode.connect(ac.destination);
+      cNode.connect(this.$data.fPan);
+      this.$data.fPan.connect(ac.destination);
     },
     updateFilter: function() {
       let gains = [];
-      console.log(this.$refs);
       this.$data.freqs.forEach( (freq, idx) => {
         gains[idx] = parseFloat(this.$refs.fGain[idx].value);
         this.$data.filter[idx].gain.value = gains[idx];
       });
       this.$data.fGain = gains;
+      this.$data.fPan.pan.value = this.$data.fPanV = parseFloat(this.$refs.fPan.value);
     },
     updateSeek: function() {
       const v = this.$refs.video;
@@ -300,6 +303,8 @@ export default {
       hls: null,
       hoverTime: '',
       filter: [],
+      fPan: null,
+      fPanV: 0,
       fGain: [],
       freqs: [
         32, 64, 128, 256, 512,
