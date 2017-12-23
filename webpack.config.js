@@ -21,38 +21,21 @@ let webpackConfig = {
   module: {
     rules: [
       {
-        test: /\.vue$/,
+        enforce: "pre",
+        test: /\.jsx?$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: 'vue-loader',
-            options: {
-              postcss: [require('autoprefixer')(config.autoprefixerOption)],
-              cssModules: {
-                localIdentName: '[path][name]--[hash:base64:5]',
-                camelCase: true
-              },
-              loaders: {
-                sass: 'vue-style-loader!css-loader!sass-loader?'+
-                    '{"includePaths":["src"]}'
-              },
-              postLoaders: {
-                html: 'babel-loader'
-              },
-            }
-          }
-        ]
+        loader: 'eslint-loader',
+        options: {
+          configFile: './.eslintrc.js',
+        }
       },
       {
-        test: /\.js$/,
-        exclude: [
-          /node_modules|vue\/dist|vue-router\/|vue-loader\/|vue-hot-reload-api\//
-        ],
+        test: /\.jsx?$/,
+        exclude: [/node_modules/],
+        include: path.resolve(__dirname, config.srcDir + 'js'),
         use: [
-          {
-            loader: 'babel-loader',
-          }
-        ]
+          { loader: 'babel-loader' },
+        ],
       },
       {
         test: /\.scss$/,
@@ -65,14 +48,7 @@ let webpackConfig = {
                 minimize: true
               }
             },
-            {
-              loader: 'postcss-loader',
-              options: {
-                plugins: [
-                  require('autoprefixer')(config.autoprefixerOption)
-                ]
-              }
-            },
+            { loader: 'postcss-loader' },
             { loader: 'sass-loader' },
           ]
         })
@@ -111,7 +87,6 @@ let webpackConfig = {
     alias: {
       Scss: path.resolve(__dirname, config.srcDir, 'css/'),
       css: path.resolve(__dirname, config.srcDir, 'css/'),
-      vue$: 'vue/dist/vue.esm.js',
     },
     modules: [
       path.resolve(__dirname, config.srcDir, 'js/'),
@@ -137,8 +112,6 @@ let webpackConfig = {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(config.env),
       VERSION: JSON.stringify(config.version),
-      PushSenderId: JSON.stringify(config.pushSenderId),
-      EnablePush: JSON.stringify(config.enablePush),
       ApiEntry: JSON.stringify('https://karuru.info/kmv/api/'),
       PublicPath: JSON.stringify(config.publicPath)
     }),
@@ -165,7 +138,7 @@ pages.forEach( page => {
         //inject: false,
       })
     );
-    webpackConfig.entry[`js/${page}.js`] = `./js/pages/${page}.js`;
+    webpackConfig.entry[`./js/${page}.js`] = `./js/${page}.js`;
 });
 
 if(config.env == 'production'){
