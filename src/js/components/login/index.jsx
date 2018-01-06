@@ -42,7 +42,11 @@ class Login extends React.Component {
           color="primary"
           onClick={(e) => {
             e.preventDefault();
-            this.props.login(this.state.username, this.state.password);
+            this.props.login(
+              this.state.username,
+              this.state.password,
+              this.props.location.state
+            );
           }}
           disabled={this.props.sending}
           className={this.props.classes.button}
@@ -59,6 +63,7 @@ Login.propTypes = {
   sending: PropTypes.bool.isRequired,
   /* eslint react/forbid-prop-types: 0 */
   classes: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
 };
 
 export default withStyles(styles, { withTheme: true })(Login);

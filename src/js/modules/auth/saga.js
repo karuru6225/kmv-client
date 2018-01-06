@@ -13,7 +13,11 @@ function* login(action) {
       password: action.payload.password
     }));
     yield put(actions.login_success(result.data.token));
-    yield put(replace('/'));
+    if (action.payload.state) {
+      yield put(replace(action.payload.state.from.pathname));
+    } else {
+      yield put(replace('/'));
+    }
   } catch (e) {
     yield put(actions.login_failed());
   }

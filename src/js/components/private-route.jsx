@@ -10,7 +10,11 @@ const PrivateRoute = ({ component: Component, ...rest }) => (
       const { token } = store.getState().auth;
       if (token === null) {
         return (
-          <Redirect to="/login" />
+          <Redirect to={{
+              pathname: '/login',
+              state: { from: routeProps.location }
+            }}
+          />
         );
       }
       return (

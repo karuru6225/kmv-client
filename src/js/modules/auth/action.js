@@ -8,11 +8,12 @@ export const actionTypes = {
 };
 
 export const actions = {
-  login: (username, password) => ({
+  login: (username, password, state) => ({
     type: actionTypes.LOGIN,
     payload: {
       username,
-      password
+      password,
+      state
     }
   }),
   login_success: token => ({
