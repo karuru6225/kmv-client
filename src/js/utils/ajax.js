@@ -1,15 +1,15 @@
-import router from 'router.js';
+// import router from 'router.js';
+import { push } from 'react-router-redux';
 import axios from 'axios';
+import store from '../store';
 
 const inst = axios.create({
-  baseURL: ApiEntry
+  baseURL: API_ENTRY
 });
 
-inst.interceptors.response.use(function(response) {
-  return response;
-}, function(error){
-  if(error.response && error.response.status == 401){
-    router.push(PublicPath + 'login');
+inst.interceptors.response.use(response => response, (error) => {
+  if (error.response && error.response.status === 401) {
+    store.dispatch(push('/login'));
   }
   return Promise.reject(error);
 });

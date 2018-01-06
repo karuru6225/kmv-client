@@ -22,6 +22,8 @@ module.exports = {
   },
   "globals": {
     API_ENTRY: true,
+    PUBLIC_PATH: true,
+    APPNAME: true,
     WEB_SOCKET_ENTRY: true,
     API_VERSION: true,
     VERSION: true,

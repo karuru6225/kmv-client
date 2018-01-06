@@ -7,6 +7,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackExcludeAssetsPlugin = require('html-webpack-exclude-assets-plugin');
 
 const cssBaseExtractor =  new ExtractTextPlugin('css/base.css');
+const cssModuleExtractor = new ExtractTextPlugin('css/modules.css');
 
 console.log('environment: ' + config.env);
 
@@ -47,6 +48,27 @@ let webpackConfig = {
               options: {
                 minimize: true
               }
+            },
+            { loader: 'postcss-loader' },
+            { loader: 'sass-loader' },
+          ]
+        })
+      },
+      {
+        test: /\.scss$/,
+        exclude: [
+          /node_modules/,
+          path.resolve(__dirname, config.srcDir + 'css')
+        ],
+        use: cssModuleExtractor.extract({
+          use: [
+            {
+              loader: 'css-loader',
+              options: {
+                modules: true,
+                minimize: true,
+              }
+
             },
             { loader: 'postcss-loader' },
             { loader: 'sass-loader' },
@@ -97,6 +119,7 @@ let webpackConfig = {
   devServer: {
     inline: true,
     hot: true,
+    host: '0.0.0.0',
     publicPath: config.publicPath,
     contentBase: config.dstDir,
     headers: { "Access-Control-Allow-Origin": "*" },
@@ -112,12 +135,14 @@ let webpackConfig = {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(config.env),
       VERSION: JSON.stringify(config.version),
-      ApiEntry: JSON.stringify('https://karuru.info/kmv/api/'),
-      PublicPath: JSON.stringify(config.publicPath)
+      APPNAME: JSON.stringify('kmv'),
+      API_ENTRY: JSON.stringify('https://karuru.info/kmv/api/'),
+      PUBLIC_PATH: JSON.stringify(config.publicPath)
     }),
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     new webpack.HotModuleReplacementPlugin(),
     cssBaseExtractor,
+    cssModuleExtractor,
     new HtmlWebpackExcludeAssetsPlugin()
   ],
 }
@@ -138,7 +163,7 @@ pages.forEach( page => {
         //inject: false,
       })
     );
-    webpackConfig.entry[`./js/${page}.js`] = `./js/${page}.js`;
+    webpackConfig.entry[`./js/${page}.js`] = `./js/${page}.jsx`;
 });
 
 if(config.env == 'production'){
