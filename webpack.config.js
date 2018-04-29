@@ -119,7 +119,7 @@ let webpackConfig = {
   devServer: {
     inline: true,
     hot: true,
-    host: '0.0.0.0',
+    // host: '0.0.0.0',
     publicPath: config.publicPath,
     contentBase: config.dstDir,
     headers: { "Access-Control-Allow-Origin": "*" },

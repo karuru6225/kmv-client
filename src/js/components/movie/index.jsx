@@ -1,14 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ListItem, ListItemText } from 'material-ui/List';
 
 import AppBar from '../../containers/appbar';
-import Table from './table.jsx';
 import File from '../../models/file';
 
-class Directory extends React.Component {
+class Movie extends React.Component {
   constructor(props) {
     super(props);
+    console.log('Movie Component');
     this.state = {
       appBarHeight: 48,
       windowSize: {
@@ -18,12 +17,7 @@ class Directory extends React.Component {
     };
   }
 
-  componentWillMount() {
-    console.log('componentWillMount');
-  }
-
   componentDidMount() {
-    console.log('componentDidMount');
     this.handleResize();
     window.addEventListener('resize', this.handleResize);
   }
@@ -42,8 +36,8 @@ class Directory extends React.Component {
   }
 
   render() {
-    const { handleSelected } = this.props;
-    const tableHeight = this.state.windowSize.height - this.state.appBarHeight;
+    const maxWidth = this.state.windowSize.width;
+    const maxHeight = this.state.windowSize.height - this.state.appBarHeight;
     return (
       <div>
         <AppBar
@@ -53,21 +47,13 @@ class Directory extends React.Component {
               appBarHeight: height
             });
           }}
-        >
-          <ListItem
-            button
-            onClick={() => {
-              this.props.refresh(this.props.current.id);
-            }}
-          >
-            <ListItemText primary="更新" />
-          </ListItem>
-        </AppBar>
-        <Table
-          files={this.props.files}
-          height={tableHeight}
-          onSelected={(file) => {
-            handleSelected(file.type, file.id);
+        />
+        <div
+          style={{
+            backgroundColor: 'gray',
+            display: 'block',
+            width: maxWidth,
+            height: maxHeight
           }}
         />
       </div>
@@ -75,11 +61,8 @@ class Directory extends React.Component {
   }
 }
 
-Directory.propTypes = {
+Movie.propTypes = {
   current: PropTypes.shape(File.shape).isRequired,
-  files: PropTypes.arrayOf(PropTypes.shape(File.shape)).isRequired,
-  handleSelected: PropTypes.func.isRequired,
-  refresh: PropTypes.func.isRequired,
 };
 
-export default Directory;
+export default Movie;

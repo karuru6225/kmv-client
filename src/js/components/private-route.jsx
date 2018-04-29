@@ -7,8 +7,13 @@ const PrivateRoute = ({ component: Component, ...rest }) => (
   <Route
     {...rest}
     render={(routeProps) => {
+      console.log('render in route');
+      console.log(window.location.href);
+      console.log(window.location.pathname);
       const { token } = store.getState().auth;
-      if (token === null) {
+      if (token === null &&
+          window.location.pathname !== `${PUBLIC_PATH}login`) {
+        console.log('Redirect to login');
         return (
           <Redirect to={{
               pathname: '/login',

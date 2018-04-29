@@ -24,6 +24,9 @@ export default theme => ({
     color: 'inherit',
     marginLeft: 0,
     marginRight: 6,
+    '&:disabled': {
+      color: 'gray',
+    }
   },
   drawer: {
     width: drawerWidth

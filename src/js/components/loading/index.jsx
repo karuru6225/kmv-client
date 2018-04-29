@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { CircularProgress } from 'material-ui/Progress';
+import { LinearProgress } from 'material-ui/Progress';
 import { withStyles } from 'material-ui/styles';
 import classNames from 'classnames';
 import styles from './style';
@@ -9,12 +9,12 @@ const Loading = props => (
   <div
     className={
       classNames({
-        [props.classes.center]: props.loading,
-        [props.classes.hide]: !props.loading
+        [props.classes.hide]: !props.loading,
+        [props.classes.container]: props.loading,
       })
     }
   >
-    <CircularProgress className={classNames(props.classes.progress)} />
+    <LinearProgress color="secondary" />
   </div>
 );
 

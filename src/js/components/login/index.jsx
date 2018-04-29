@@ -37,7 +37,7 @@ class Login extends React.Component {
           fullWidth
         />
         <Button
-          raised
+          variant="raised"
           type="submit"
           color="primary"
           onClick={(e) => {

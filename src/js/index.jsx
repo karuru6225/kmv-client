@@ -2,7 +2,7 @@ import 'babel-polyfill';
 
 import React from 'react';
 import { render } from 'react-dom';
-import { HashRouter as Router, Route as PublicRoute, Redirect, Switch } from 'react-router-dom';
+import { Router, Route as PublicRoute, Switch } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { syncHistoryWithStore } from 'react-router-redux';
 
@@ -20,12 +20,15 @@ import Icons from './components/icons.jsx';
 import Login from './containers/login';
 import Directory from './containers/directory';
 import Loading from './containers/loading';
+import { extComponentMap } from './utils/consts';
 
-store.dispatch(commonActions.init());
 const syncedHistory = syncHistoryWithStore(history, store);
 const theme = createMuiTheme(Config.muiTheme);
 
+const apps = Object.keys(extComponentMap).filter(k => k !== 'dir');
+
 window.addEventListener('DOMContentLoaded', () => {
+  store.dispatch(commonActions.init());
   render(
     <MuiThemeProvider theme={theme}>
       <Provider store={store}>
@@ -34,10 +37,27 @@ window.addEventListener('DOMContentLoaded', () => {
             <Loading />
             <Switch>
               <PublicRoute path="/login" component={Login} />
-              <Route path="/dir" component={Directory} exact />
-              <Route path="/dir/:id" component={Directory} exact />
-              <Route path="/icons" component={Icons} exact />
-              <Redirect from="*" to="/dir" />
+              <Route exact path="/" component={Directory} />
+              <Route exact path="/directory" component={Directory} />
+              <Route exact path="/directory/:id" component={Directory} />
+              <Route exact path="/icons" component={Icons} />
+              {
+                apps.map((app) => {
+                  const { component: Component, exts } = extComponentMap[app];
+                  return exts.map((ext) => {
+                    const boundComponent = props => (
+                      <Component {...props} ext={ext} />
+                    );
+                    return (
+                      <Route
+                        key={`${app}-${ext}`}
+                        path={`/${ext}/:id`}
+                        component={boundComponent}
+                      />
+                    );
+                  });
+                })
+              }
             </Switch>
           </div>
         </Router>

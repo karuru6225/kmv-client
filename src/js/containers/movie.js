@@ -1,10 +1,12 @@
 import { connect } from 'react-redux';
 import { goBack } from 'react-router-redux';
-import Dummy from '../components/dummy.jsx';
+import Movie from '../components/movie/index.jsx';
 import { actions } from '../modules/auth/action';
 
-function mapStateToProps() {
-  return {};
+function mapStateToProps(state) {
+  return {
+    current: state.common.current,
+  };
 }
 
 function mapDispatchToProps(dispatch) {
@@ -21,4 +23,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Dummy);
+)(Movie);

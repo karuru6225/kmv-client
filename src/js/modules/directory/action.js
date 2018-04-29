@@ -9,12 +9,9 @@ export const actions = {
     type: actionTypes.REFRESH,
     payload: id
   }),
-  load_success: (current, files) => ({
+  load_success: files => ({
     type: actionTypes.LOAD_SUCCESS,
-    payload: {
-      current,
-      files
-    }
+    payload: files
   }),
   load_failed: message => ({
     type: actionTypes.LOAD_FAILED,

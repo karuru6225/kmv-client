@@ -1,5 +1,6 @@
 import randomString from 'randomstring';
 import moment from 'moment';
+import PropTypes from 'prop-types';
 
 /* eslint no-mixed-operators: 0 */
 const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -23,5 +24,19 @@ export default class {
     this.type = type;
     this.size = size;
     this.parentId = parentId;
+  }
+
+  static shape = {
+    id: PropTypes.string,
+    name: PropTypes.string,
+    keyword: PropTypes.string,
+    mtime: PropTypes.number,
+    type: PropTypes.string,
+    size: PropTypes.number,
+    parentId: PropTypes.string
+  };
+
+  toJSON() {
+    return { ...this };
   }
 }

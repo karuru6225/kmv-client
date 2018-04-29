@@ -1,10 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Tooltip from 'material-ui/Tooltip';
 import naturalCompare from 'natural-compare';
 
-import { SortingState, IntegratedSorting } from '@devexpress/dx-react-grid';
+import {
+  SortingState, IntegratedSorting,
+  FilteringState, IntegratedFiltering
+} from '@devexpress/dx-react-grid';
 import {
   Grid,
+  TableColumnResizing,
+  TableFilterRow,
   VirtualTable, TableHeaderRow
 } from '@devexpress/dx-react-grid-material-ui';
 
@@ -14,9 +20,9 @@ import numeral from 'numeral';
 import File from '../../models/file';
 
 const tableColumnExtensions = [
-  { columnName: 'mtime', width: 150 },
-  { columnName: 'type', width: 100, align: '' },
-  { columnName: 'size', width: 100, align: 'right' }
+  { columnName: 'mtime' },
+  { columnName: 'type', align: '' },
+  { columnName: 'size', align: 'right' }
 ];
 
 /*
@@ -61,6 +67,7 @@ const getRow = handleSelected => rowProps => (
     }}
   />
 );
+
 const getIconName = (type) => {
   switch (type) {
     case 'directory':
@@ -107,12 +114,14 @@ const Cell = (props) => {
   return (
     <VirtualTable.Cell {...props} >
       <i className={`fa fa-${getIconName(type)}`} />
-      <span style={{
-        paddingLeft: '1em'
-        }}
-      >
-        {props.row[props.column.name]}
-      </span>
+      <Tooltip title={props.row[props.column.name]}>
+        <span style={{
+          paddingLeft: '1em'
+          }}
+        >
+          {props.row[props.column.name]}
+        </span>
+      </Tooltip>
     </VirtualTable.Cell>
   );
 };
@@ -122,34 +131,100 @@ Cell.propTypes = {
   row: PropTypes.shape(shape).isRequired,
 };
 
-const Table = (props) => {
-  const rows = props.files;
-  const Row = getRow(props.onSelected);
-  return (
-    <Grid
-      rows={rows}
-      columns={columns}
-      getRowId={row => row.id}
-    >
-      <SortingState
-        defaultSorting={defaultSort}
-      />
-      <IntegratedSorting
-        columnExtensions={integratedSortingExtensions}
-      />
-      <VirtualTable
-        height={props.height}
-        columnExtensions={tableColumnExtensions}
-        rowComponent={Row}
-        cellComponent={Cell}
-      />
-      <TableHeaderRow showSortingControls />
-    </Grid>
-  );
+const FilterCell = (props) => {
+  switch (props.column.name) {
+    case 'mtime':
+    case 'size':
+      return <VirtualTable.Cell {...props} />;
+    case 'name':
+    case 'type':
+    default:
+      return <TableFilterRow.Cell {...props} />;
+  }
 };
 
+FilterCell.propTypes = {
+  column: PropTypes.shape(shape).isRequired
+};
+
+class Table extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      filterConditions: [],
+      columnWidths: [
+        {
+          columnName: 'name',
+          width: 900
+        },
+        {
+          columnName: 'mtime',
+          width: 150
+        },
+        {
+          columnName: 'size',
+          width: 100
+        },
+        {
+          columnName: 'type',
+          width: 100
+        },
+      ]
+    };
+  }
+
+  render() {
+    const rows = this.props.files;
+    const Row = getRow(this.props.onSelected);
+    return (
+      <Grid
+        rows={rows}
+        columns={columns}
+        getRowId={row => row.id}
+      >
+        <FilteringState
+          filters={this.state.filterConditions}
+          onFiltersChange={(filters) => {
+            console.log('onFiltersChange');
+            this.setState({
+              filterConditions: filters
+            });
+          }}
+        />
+        <IntegratedFiltering />
+
+        <SortingState
+          defaultSorting={defaultSort}
+        />
+        <IntegratedSorting
+          columnExtensions={integratedSortingExtensions}
+        />
+        <VirtualTable
+          height={this.props.height}
+          columnExtensions={tableColumnExtensions}
+          rowComponent={Row}
+          cellComponent={Cell}
+        />
+        <TableColumnResizing
+          columnWidths={this.state.columnWidths}
+          onColumnWidthsChange={(widths) => {
+            console.log('onColumnWidthsChange');
+            this.setState({
+              columnWidths: widths
+            });
+          }}
+        />
+        <TableFilterRow
+          cellComponent={FilterCell}
+        />
+        <TableHeaderRow showSortingControls />
+      </Grid>
+    );
+  }
+}
+
 Table.propTypes = {
-  files: PropTypes.arrayOf(PropTypes.instanceOf(File)).isRequired,
+  files: PropTypes.arrayOf(PropTypes.shape(File.shape)).isRequired,
   height: PropTypes.number.isRequired,
   onSelected: PropTypes.func.isRequired,
 };
