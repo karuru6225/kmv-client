@@ -105,12 +105,20 @@ export default {
       this.$data.videoClass = this.getVideoClass(this.$data.videoSizeIdx);
       this.$data.sizeButtonClass = this.getSizeButtonClass(this.$data.videoSizeIdx);
     },
+    play() {
+      this.$refs.video.play();
+      this.$data.pauseInWaiting = false;
+    },
+    pause(inWaiting) {
+      this.$data.pauseInWaiting = true;
+      this.$refs.video.pause();
+    },
     togglePlay() {
       const v = this.$refs.video;
-      if(v.paused){
-        v.play();
+      if(v && v.paused){
+        this.play();
       }else{
-        v.pause();
+        this.pause();
       }
     },
     changeVolume(e) {
@@ -176,7 +184,6 @@ export default {
       if(this.$data.hls){
         this.$data.hls.destroy();
         this.$data.hls = null;
-        clearInterval(seekTimer);
       }
       if(process.env.NODE_ENV == 'production'){
         this.$data.source = ApiEntry + `file/${this.$props.id}/direct?open`;
@@ -186,11 +193,14 @@ export default {
       const hls = new Hls({
         maxBufferLength: 600
       });
+      hls.on('hlsError', () => {
+        console.log('recovering');
+        hls.recoverMediaError();
+      });
       hls.loadSource(this.$data.source);
       hls.attachMedia(this.$refs.video);
       this.$data.hls = hls;
       this.setVolume(this.$data.volume);
-      seekTimer = setInterval(this.updateSeek.bind(this), 500);
 
       this.$store.dispatch('movie/meta', {
         id: this.id||''
@@ -219,7 +229,7 @@ export default {
         cNode = f;
         this.$data.filter.push(f);
       });
-      this.updateFilter();
+      // this.updateFilter();
       cNode.connect(this.$data.fPan);
       this.$data.fPan.connect(ac.destination);
     },
@@ -256,6 +266,7 @@ export default {
       this.seek(this.getSeekTime(e.clientX));
     },
     seek: function(time){
+      this.pause(true);
       this.$refs.video.currentTime = time;
       this.$data.currentTime = time;
     },
@@ -306,6 +317,7 @@ export default {
       fPan: null,
       fPanV: 0,
       fGain: [],
+      pauseInWaiting: false,
       freqs: [
         32, 64, 128, 256, 512,
         1024, 2048, 4096, 8192, 16384
@@ -326,6 +338,20 @@ export default {
         this.$store.commit('bookmark/next');
       }
     });
+    this.$refs.video.addEventListener('timeupdate', () => {
+      this.updateSeek();
+    });
+    this.$refs.video.addEventListener('waiting', () => {
+      this.pause(true);
+    });
+    this.$refs.video.addEventListener('durationchange', () => {
+      this.updateSeek();
+    });
+    this.$refs.video.addEventListener('canplay', () => {
+      if(this.$data.pauseInWaiting) {
+        this.play();
+      }
+    });
     this.fetchData();
   },
   activated: function(){
@@ -337,7 +363,6 @@ export default {
   beforeDestroy: function() {
     console.log('movie beforeDestroy');
     this.$data.hls.destroy();
-    clearInterval(seekTimer);
     window.removeEventListener('keydown', this.keydown);
     window.removeEventListener('mouseup', this.volumeMouseup);
     window.removeEventListener('mousemove', this.volumeMousemove);
