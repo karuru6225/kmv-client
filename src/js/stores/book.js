@@ -24,9 +24,22 @@ export default {
     loaded: 0,
     currentPage: 0,
     fileCount: null,
-    loading: false
+    loading: false,
+    resolution: 2
   },
   mutations: {
+    toggleResolution(state) {
+      state.resolution += 1;
+      if (state.resolution > 3) {
+        state.resolution = 1;
+      }
+      state.images = [];
+      state.imageStatuses = [];
+      for(let i = 0; i < payload.data.fileCount; i++){
+        Vue.set(state.imageStatuses, i, BEFORE_LOAD);
+      }
+      state.loaded = 0;
+    },
     setLoading(state, isLoading){
       state.loading = isLoading;
     },
@@ -187,8 +200,9 @@ export default {
             break;
           }
           const base = axios.defaults.baseURL;
-          const w = window.innerWidth * 2;
-          const h = window.innerHeight * 2;
+          const mul = state.resolution;
+          const w = mul * window.innerWidth;
+          const h = mul * window.innerHeight;
           const pathResized = `${type}/${id}/${fid}/resize/${w}/${h}`;
           const path = `${type}/${id}/${fid}`;
 

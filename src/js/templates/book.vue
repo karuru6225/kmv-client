@@ -5,7 +5,14 @@
       :back=true
       :file="$store.state.file.current"
       :class="$data.showUIs ? $style.header : $style.headerHidden"
-    />
+    >
+      <vert-div />
+      <i-button
+        color="primary"
+        :icon="getResolutionIcon()"
+        @click="toggleImageSize"
+      />
+    </common-header>
     <div :class="$style.body">
       <bookmarks
         :class="$style.bookmark"
@@ -33,6 +40,7 @@ import Bookmarks from 'organisms/bookmarks.vue';
 import { mapState } from 'vuex';
 import $ from 'jquery';
 import Loading from 'atoms/panel/loading.vue';
+import IButton from 'atoms/button/iconfont-base.vue';
 
 export default {
   components: {
@@ -41,6 +49,7 @@ export default {
     ListButton,
     Bookmarks,
     Loading,
+    IButton,
   },
   props: ['id', 'type'],
   methods: {
@@ -50,6 +59,19 @@ export default {
         this.$data[pos+'Flip'] = null;
       }else{
         this.$data[pos+'Flip'] = this.$style.flipImage;
+      }
+    },
+    toggleImageSize() {
+      this.$store.commit('book/toggleResolution');
+    },
+    getResolutionIcon() {
+      switch(this.$store.state.book.resolution){
+        case 1:
+          return 'dice-one';
+        case 2:
+          return 'dice-two';
+        case 3:
+          return 'dice-three';
       }
     },
     getStatusBarClass(){

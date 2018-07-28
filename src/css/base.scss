@@ -1,7 +1,11 @@
 @charset "utf-8";
 
 @import "./settings";
-@import "./font-awesome/scss/font-awesome";
+@import "./font-awesome/scss/fontawesome";
+@import "./font-awesome/scss/brands";
+@import "./font-awesome/scss/regular";
+@import "./font-awesome/scss/solid";
+@import "./font-awesome/scss/v4-shims";
 
 html, body {
   margin: 0;
