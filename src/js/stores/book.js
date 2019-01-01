@@ -25,13 +25,23 @@ export default {
     currentPage: 0,
     fileCount: null,
     loading: false,
-    resolution: 2
+    resolution: 4
   },
   mutations: {
     toggleResolution(state) {
-      state.resolution += 1;
-      if (state.resolution > 3) {
-        state.resolution = 1;
+      switch(state.resolution) {
+        case 1:
+          state.resolution = 2;
+          break;
+        case 2:
+          state.resolution = 4;
+          break;
+        case 4:
+          state.resolution = 6;
+          break;
+        case 6:
+          state.resolution = 1;
+          break;
       }
       state.images = [];
       state.imageStatuses = [];
@@ -200,7 +210,7 @@ export default {
             break;
           }
           const base = axios.defaults.baseURL;
-          const mul = state.resolution;
+          const mul = state.resolution / 2.0;
           const w = mul * window.innerWidth;
           const h = mul * window.innerHeight;
           const pathResized = `${type}/${id}/${fid}/resize/${w}/${h}`;

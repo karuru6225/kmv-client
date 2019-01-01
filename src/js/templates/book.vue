@@ -67,10 +67,12 @@ export default {
     getResolutionIcon() {
       switch(this.$store.state.book.resolution){
         case 1:
-          return 'dice-one';
+          return 'tachometer-alt';
         case 2:
+          return 'dice-one';
+        case 4:
           return 'dice-two';
-        case 3:
+        case 6:
           return 'dice-three';
       }
     },
