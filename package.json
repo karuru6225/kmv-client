@@ -5,7 +5,7 @@
   "main": ".eslintrc.js",
   "scripts": {
     "dev": "parcel --no-hmr --no-cache src/html/index.html",
-    "build": "rm -rf ./dist && parcel build --no-source-maps --no-cache src/html/index.html"
+    "build": "rm -rf ./dist && parcel build --public-url /kmv/ --no-source-maps --no-cache src/html/index.html"
   },
   "keywords": [],
   "author": "",
