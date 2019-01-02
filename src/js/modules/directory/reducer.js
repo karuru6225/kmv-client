@@ -4,7 +4,6 @@ import File from '../../models/file';
 
 const defaultState = {
   files: [],
-  errorMessage: ''
 };
 
 export default handleActions({
@@ -15,8 +14,10 @@ export default handleActions({
       files: files.map(f => (new File(f)).toJSON()),
     };
   },
+  [actionTypes.RESET]: (_, action) => ({
+    ...defaultState
+  }),
   [actionTypes.LOAD_FAILED]: (_, action) => ({
-    ...defaultState,
-    errorMessage: action.payload
+    ...defaultState
   }),
 }, defaultState);

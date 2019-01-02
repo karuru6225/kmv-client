@@ -3,21 +3,21 @@ import { actionTypes } from './action';
 import File from '../../models/file';
 
 const defaultState = {
-  loading: false,
-  current: (new File({ name: '' })).toJSON(),
+  loading: 0,
+  current_file: (new File()).toJSON()
 };
 
 export default handleActions({
-  [actionTypes.CHANGE_CURRENT]: (state, action) => ({
-    ...state,
-    current: (new File(action.payload)).toJSON()
-  }),
   [actionTypes.LOAD_START]: state => ({
     ...state,
-    loading: true
+    loading: state.loading + 1
   }),
   [actionTypes.LOAD_FINISH]: state => ({
     ...state,
-    loading: false
+    loading: state.loading - 1
+  }),
+  [actionTypes.CHANGE_CURRENT]: (state, action) => ({
+    ...state,
+    current_file: action.payload
   }),
 }, defaultState);

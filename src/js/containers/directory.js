@@ -1,30 +1,31 @@
 import { connect } from 'react-redux';
-import { withRouter } from 'react-router-dom';
 import { push } from 'react-router-redux';
+
 import Directory from '../components/directory/index.jsx';
 import { actions } from '../modules/directory/action';
+import File from '../models/file';
 import { getUrlFromFile } from '../utils/consts';
 
 function mapStateToProps(state) {
   return {
-    ...state.dir,
-    current: state.common.current,
+    current: new File(state.common.current_file),
+    files: state.directory.files.map(f => new File(f))
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    handleSelected: (type, id) => {
+    cd: (type, id) => {
       const url = getUrlFromFile(type, id);
       dispatch(push(url));
     },
-    refresh: (id) => {
-      dispatch(actions.refresh(id));
+    refresh: () => {
+      dispatch(actions.refresh());
     }
   };
 }
 
-export default withRouter(connect(
+export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Directory));
+)(Directory);

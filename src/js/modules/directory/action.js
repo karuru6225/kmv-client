@@ -1,13 +1,16 @@
 export const actionTypes = {
-  REFRESH: `@@${APPNAME}/dir/refresh`,
-  LOAD_SUCCESS: `@@${APPNAME}/dir/load_sucess`,
-  LOAD_FAILED: `@@${APPNAME}/dir/load_failed`,
+  RESET: `@@${process.env.APPNAME}/dir/reset`,
+  REFRESH: `@@${process.env.APPNAME}/dir/refresh`,
+  LOAD_SUCCESS: `@@${process.env.APPNAME}/dir/load_sucess`,
+  LOAD_FAILED: `@@${process.env.APPNAME}/dir/load_failed`,
 };
 
 export const actions = {
-  refresh: id => ({
-    type: actionTypes.REFRESH,
-    payload: id
+  reset: () => ({
+    type: actionTypes.RESET
+  }),
+  refresh: () => ({
+    type: actionTypes.REFRESH
   }),
   load_success: files => ({
     type: actionTypes.LOAD_SUCCESS,

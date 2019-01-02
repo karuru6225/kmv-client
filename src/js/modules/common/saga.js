@@ -1,22 +1,36 @@
+import {
+  takeLatest,
+  call,
+  put,
+  select
+} from 'redux-saga/effects';
 import { LOCATION_CHANGE } from 'react-router-redux';
+import { matchPath } from 'react-router-dom';
 import { actions, actionTypes } from '../common/action';
+import { file } from '../../utils/ajax';
+
+function* getPage() {
+  const pathname = (yield select(state => state.router.location)).pathname;
+  const authPages = matchPath(pathname, '/login') || matchPath(pathname, '/logout');
+  if (authPages) {
+    return false;
+  }
+  return matchPath(pathname, '/*/:id')
+    || matchPath(pathname, '/');
+}
 
 function* changeCurrent(action) {
-  let app = '';
-  let type = '';
-  let id = '';
-
-  switch (action.type) {
-    case LOCATION_CHANGE:
-      [, type, id = ''] = action.payload.pathname.match(/^\/?([^/]+)(\/.*)?(\/.*)?/) || [];
-      api = axios.get.bind(axios, `dir${id}`, cancelOption);
-      break;
-    case commonActionTypes.INIT:
-    default:
-      console.log('init in common.saga');
-      [, type, id = ''] = window.location.hash.match(/^#\/?([^/]+)(\/.*)?/) || [];
-      api = axios.get.bind(axios, `dir${id}`, cancelOption);
-      break;
+  const page = yield call(getPage);
+  if (page) {
+    const {
+      id
+    } = page.params;
+    try {
+      const result = yield call(file.get, id);
+      yield put(actions.change_current(result.data));
+    } catch (e) {
+      console.log(e);
+    }
   }
 }
 

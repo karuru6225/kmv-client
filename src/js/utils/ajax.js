@@ -3,9 +3,10 @@ import axios from 'axios';
 import store from '../store';
 import { actions as commonAction } from '../modules/common/action';
 import { actions as authAction } from '../modules/auth/action';
+import { storage, storageKey } from './consts';
 
 const inst = axios.create({
-  baseURL: API_ENTRY
+  baseURL: process.env.API_ENTRY
 });
 
 inst.interceptors.request.use((config) => {
@@ -21,10 +22,10 @@ inst.interceptors.response.use((response) => {
   if (error.response &&
       error.response.status === 401
   ) {
-    console.log(window.location.href);
-    console.log(JSON.stringify(error));
-    console.log(JSON.stringify(error.response));
-    store.dispatch(authAction.logout_success());
+    // console.log(window.location.href);
+    // console.log(JSON.stringify(error));
+    // console.log(JSON.stringify(error.response));
+    store.dispatch(authAction.logouted());
     store.dispatch(push('/login'));
     /* store.dispatch(replace({
       pathname: '/login',
@@ -36,4 +37,35 @@ inst.interceptors.response.use((response) => {
   return Promise.reject(error);
 });
 
-export default inst;
+export const setToken = (token) => {
+  inst.defaults.headers.common['x-kmv-token'] = token;
+  storage.setItem(storageKey, token);
+};
+
+export const clearToken = () => {
+  inst.defaults.headers.common['x-kmv-token'] = null;
+  storage.removeItem(storageKey);
+};
+
+export const auth = {
+  login: (username, password) => {
+    return inst.post('auth', {
+      username,
+      password
+    });
+  },
+  logout: () => {
+    return inst.delete('auth');
+  }
+};
+
+export const file = {
+  get: id => inst.get(`file/${id||''}`)
+}
+
+export const directory = {
+  get: id => inst.get(`dir/${id||''}`),
+  refresh: id => inst.put(`dir/${id||''}`)
+};
+
+

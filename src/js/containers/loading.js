@@ -1,10 +1,17 @@
 import { connect } from 'react-redux';
-import Loading from '../components/loading/index.jsx';
+import Loading from '../components/common/loading.jsx';
 
 function mapStateToProps(state) {
   return {
-    ...state.common
+    loading: state.common.loading !== 0
   };
 }
 
-export default connect(mapStateToProps)(Loading);
+function mapDispatchToProps() {
+  return { };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Loading);

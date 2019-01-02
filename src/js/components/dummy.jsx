@@ -1,43 +1,61 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from 'material-ui/styles';
-import Button from 'material-ui/Button';
-import styles from './style';
+import { Link } from 'react-router-dom';
+import { withTheme } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import TextField from '@material-ui/core/TextField';
 
-const Dummy = (props) => {
-  console.log(props);
-  console.log(props.classes);
-  return (
-    <div>
-      <Button
-        raised
-        color="primary"
-        onClick={(e) => {
-          e.preventDefault();
-          props.goBack();
-        }}
-      >
-        戻る
-      </Button>
-      <Button
-        raised
-        color="primary"
-        onClick={(e) => {
-          e.preventDefault();
-          props.logout();
-        }}
-      >
-        ログアウト
-      </Button>
-    </div>
-  );
-};
+class Dummy extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      to: 'directory'
+    };
+  }
 
-Dummy.propTypes = {
-  logout: PropTypes.func.isRequired,
-  goBack: PropTypes.func.isRequired,
-  /* eslint react/forbid-prop-types: 0 */
-  classes: PropTypes.object.isRequired,
-};
+  render() {
+    const {
+      theme
+    } = this.props;
+    const variants = Object.keys(theme.typography)
+      .filter(t => (typeof theme.typography[t]) === 'object')
+      .filter(t => !t.match(/.*Next/))
+    return (
+      <div>
+        <div>
+          ダミーコンポーネント
+        </div>
+        <div>
+          <Link to="/login">
+            ログイン画面へ
+          </Link>
+        </div>
+        <div>
+          <Link to="/logout">
+            ログアウト
+          </Link>
+        </div>
+        <div>
+          <Link to={`/${this.state.to}`}>
+            {`/${this.state.to}`}
+          </Link>
+        </div>
+        <div>
+          <TextField
+            label='to'
+            value={this.state.to}
+            onChange={e => this.setState({to: e.target.value})}
+          />
+        </div>
+        {
+          variants.map(v => (
+            <Typography variant={v} key={v}>
+              {v}
+            </Typography>
+          ))
+        }
+      </div>
+    );
+  }
+}
 
-export default withStyles(styles, { withTheme: true })(Dummy);
+export default withTheme()(Dummy);

@@ -1,19 +1,17 @@
 export const actionTypes = {
-  LOGIN: `@@${APPNAME}/auth/login`,
-  LOGIN_SUCCESS: `@@${APPNAME}/auth/login_success`,
-  LOGIN_FAILED: `@@${APPNAME}/auth/login_failed`,
-  LOGOUT: `@@${APPNAME}/auth/logout`,
-  LOGOUT_SUCCESS: `@@${APPNAME}/auth/logout_success`,
-  LOGOUT_FAILED: `@@${APPNAME}/auth/logout_failed`,
+  LOGIN: `@@${process.env.APPNAME}/auth/login`,
+  LOGIN_SUCCESS: `@@${process.env.APPNAME}/auth/login_success`,
+  LOGIN_FAILED: `@@${process.env.APPNAME}/auth/login_failed`,
+  LOGOUT: `@@${process.env.APPNAME}/auth/logout`,
+  LOGOUTED: `@@${process.env.APPNAME}/auth/logouted`,
 };
 
 export const actions = {
-  login: (username, password, state) => ({
+  login: (username, password) => ({
     type: actionTypes.LOGIN,
     payload: {
       username,
       password,
-      state
     }
   }),
   login_success: token => ({
@@ -27,10 +25,7 @@ export const actions = {
   logout: () => ({
     type: actionTypes.LOGOUT
   }),
-  logout_success: () => ({
-    type: actionTypes.LOGOUT_SUCCESS
-  }),
-  logout_failed: () => ({
-    type: actionTypes.LOGOUT_FAILED
+  logouted: () => ({
+    type: actionTypes.LOGOUTED
   })
 };

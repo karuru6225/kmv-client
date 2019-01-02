@@ -1,21 +1,12 @@
 import { connect } from 'react-redux';
-import { goBack } from 'react-router-redux';
 import Dummy from '../components/dummy.jsx';
-import { actions } from '../modules/auth/action';
 
-function mapStateToProps() {
-  return {};
+function mapStateToProps(state) {
+  return state;
 }
 
-function mapDispatchToProps(dispatch) {
-  return {
-    goBack: () => {
-      dispatch(goBack());
-    },
-    logout: () => {
-      dispatch(actions.logout());
-    }
-  };
+function mapDispatchToProps() {
+  return { };
 }
 
 export default connect(

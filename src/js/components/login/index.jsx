@@ -1,69 +1,87 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import TextField from 'material-ui/TextField';
-import Button from 'material-ui/Button';
-import { withStyles } from 'material-ui/styles';
-import styles from './style';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import { Link } from 'react-router-dom';
+import { withStyles } from '@material-ui/core/styles';
+
+const styles = theme => ({
+  loginForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: '400px',
+    margin: '100px auto'
+  },
+  textField: {
+    marginBottom: theme.spacing.unit,
+  },
+  forgotPassword: {
+    marginTop: theme.spacing.unit * 2,
+    textAlign: 'center',
+  }
+});
 
 class Login extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      username: '',
-      password: ''
-    };
+    this.userRef = React.createRef();
+    this.passRef = React.createRef();
   }
 
   render() {
+    const {
+      classes,
+      sending,
+      login,
+      errorMessage
+    } = this.props;
+    const isError = errorMessage !== '';
     return (
-      <form className={this.props.classes.container}>
-        <TextField
-          label="Username"
-          placeholder="Username"
-          onChange={(e) => {
-            this.setState({ username: e.target.value });
-          }}
-          value={this.state.username}
-          fullWidth
-        />
-        <TextField
-          label="Password"
-          placeholder="Password"
-          type="password"
-          onChange={(e) => {
-            this.setState({ password: e.target.value });
-          }}
-          value={this.state.password}
-          fullWidth
-        />
-        <Button
-          variant="raised"
-          type="submit"
-          color="primary"
-          onClick={(e) => {
-            e.preventDefault();
-            this.props.login(
-              this.state.username,
-              this.state.password,
-              this.props.location.state
-            );
-          }}
-          disabled={this.props.sending}
-          className={this.props.classes.button}
-        >
-          ログイン
-        </Button>
-      </form>
+      <div>
+        <form className={classes.loginForm}>
+          <TextField
+            error={isError}
+            id="username"
+            label={isError ? errorMessage : 'username'}
+            inputRef={this.userRef}
+            disabled={sending}
+            className={classes.textField}
+          />
+          <TextField
+            id="password"
+            label="Password"
+            type="password"
+            inputRef={this.passRef}
+            disabled={sending}
+            className={classes.textField}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={sending}
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              login(
+                this.userRef.current.value,
+                this.passRef.current.value,
+              );
+            }}
+          >
+            ログイン
+          </Button>
+        </form>
+      </div>
     );
   }
 }
 
+
 Login.propTypes = {
+  classes: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
   login: PropTypes.func.isRequired,
   sending: PropTypes.bool.isRequired,
-  /* eslint react/forbid-prop-types: 0 */
-  classes: PropTypes.object.isRequired,
-  location: PropTypes.object.isRequired,
+  errorMessage: PropTypes.string.isRequired
 };
 
-export default withStyles(styles, { withTheme: true })(Login);
+export default withStyles(styles)(Login);

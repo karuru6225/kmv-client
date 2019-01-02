@@ -1,68 +1,55 @@
-import 'babel-polyfill';
-
+import "babel-polyfill";
 import React from 'react';
 import { render } from 'react-dom';
-import { Router, Route as PublicRoute, Switch } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { syncHistoryWithStore } from 'react-router-redux';
-
-import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
-
-import '../css/base.scss';
-
-import Config from './config';
-import Route from './components/private-route.jsx';
+import { Route, Switch } from 'react-router-dom';
+import { ConnectedRouter as Router } from 'connected-react-router';
 import store, { history } from './store';
-import { actions as commonActions } from './modules/common/action';
-
-// import Dummy from './containers/dummy';
-import Icons from './components/icons.jsx';
+import Dummy from './containers/dummy';
+import Auth from './containers/auth';
+import Loading from './containers/loading';
 import Login from './containers/login';
 import Directory from './containers/directory';
-import Loading from './containers/loading';
-import { extComponentMap } from './utils/consts';
+import { storage, storageKey, extComponentMap } from './utils/consts';
+import { actions as authActions } from './modules/auth/action';
 
-const syncedHistory = syncHistoryWithStore(history, store);
-const theme = createMuiTheme(Config.muiTheme);
+const token = storage.getItem(storageKey);
+if (token) {
+  store.dispatch( authActions.login_success(token) );
+}
 
-const apps = Object.keys(extComponentMap).filter(k => k !== 'dir');
+const componentsMap = [];
+extComponentMap.forEach((app) => {
+  app.exts.forEach((ext) => {
+    componentsMap.push(
+      (
+        <Route extact key={app.key} path={`/${ext}/*`} component={app.component} />
+      )
+    );
+  });
+});
 
 window.addEventListener('DOMContentLoaded', () => {
-  store.dispatch(commonActions.init());
   render(
-    <MuiThemeProvider theme={theme}>
-      <Provider store={store}>
-        <Router history={syncedHistory}>
-          <div>
-            <Loading />
-            <Switch>
-              <PublicRoute path="/login" component={Login} />
-              <Route exact path="/" component={Directory} />
-              <Route exact path="/directory" component={Directory} />
-              <Route exact path="/directory/:id" component={Directory} />
-              <Route exact path="/icons" component={Icons} />
-              {
-                apps.map((app) => {
-                  const { component: Component, exts } = extComponentMap[app];
-                  return exts.map((ext) => {
-                    const boundComponent = props => (
-                      <Component {...props} ext={ext} />
-                    );
-                    return (
-                      <Route
-                        key={`${app}-${ext}`}
-                        path={`/${ext}/:id`}
-                        component={boundComponent}
-                      />
-                    );
-                  });
-                })
-              }
-            </Switch>
-          </div>
-        </Router>
-      </Provider>
-    </MuiThemeProvider>,
-    window.document.getElementById('app')
+    <Provider store={store}>
+      <Router history={history}>
+        <div>
+          <Switch>
+            <Route exact path="/login" component={Login} />
+            <Auth>
+              <Switch>
+                <Route exact path="/" component={Directory} />
+                <Route exact path="/directory" component={Directory} />
+                <Route exact path="/directory/:id" component={Directory} />
+                { componentsMap }
+                <Route path="*" component={Dummy} />
+              </Switch>
+            </Auth>
+          </Switch>
+          <Loading />
+        </div>
+      </Router>
+    </Provider>,
+    window.document.getElementById('root')
   );
 });

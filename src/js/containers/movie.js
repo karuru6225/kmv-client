@@ -1,22 +1,23 @@
 import { connect } from 'react-redux';
-import { goBack } from 'react-router-redux';
+import { push } from 'react-router-redux';
+
 import Movie from '../components/movie/index.jsx';
-import { actions } from '../modules/auth/action';
+// import { actions } from '../modules/movie/action';
+import File from '../models/file';
+import { getUrlFromFile } from '../utils/consts';
 
 function mapStateToProps(state) {
   return {
-    current: state.common.current,
+    current: new File(state.common.current_file),
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    goBack: () => {
-      dispatch(goBack());
+    cd: (type, id) => {
+      const url = getUrlFromFile(type, id);
+      dispatch(push(url));
     },
-    logout: () => {
-      dispatch(actions.logout());
-    }
   };
 }
 

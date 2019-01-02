@@ -1,84 +1,100 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ListItem, ListItemText } from 'material-ui/List';
 
-import AppBar from '../../containers/appbar';
-import Table from './table.jsx';
+import ReactTable from "react-table";
+import moment from 'moment';
+import filesize from 'filesize';
+import IconButton from '@material-ui/core/IconButton';
+import RefreshIcon from '@material-ui/icons/Refresh';
+
 import File from '../../models/file';
+import AppBase from '../common/app-base.jsx';
+
+import "react-table/react-table.css";
+
+const headerHeight = 48;
 
 class Directory extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      appBarHeight: 48,
-      windowSize: {
-        width: 100,
-        height: 100
-      }
-    };
-  }
-
-  componentWillMount() {
-    console.log('componentWillMount');
-  }
-
-  componentDidMount() {
-    console.log('componentDidMount');
-    this.handleResize();
-    window.addEventListener('resize', this.handleResize);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.handleResize);
-  }
-
-  handleResize = () => {
-    this.setState({
-      windowSize: {
-        width: window.innerWidth,
-        height: window.innerHeight
-      }
-    });
-  }
-
-  render() {
-    const { handleSelected } = this.props;
-    const tableHeight = this.state.windowSize.height - this.state.appBarHeight;
+  renderHeaderRight() {
+    const {
+      refresh
+    } = this.props;
     return (
-      <div>
-        <AppBar
-          {...this.props}
-          onChangeHeight={(height) => {
-            this.setState({
-              appBarHeight: height
-            });
+      <IconButton
+        color="inherit"
+        onClick={() => refresh()}
+      >
+        <RefreshIcon />
+      </IconButton>
+    );
+  }
+  render() {
+    const {
+      current,
+      cd,
+      files
+    } = this.props;
+    return (
+      <AppBase
+        current={current}
+        cd={cd}
+        headerRight={this.renderHeaderRight()}
+      >
+        <ReactTable
+          className="-striped -highlight"
+          style={{
+            height: `calc(100vh - ${headerHeight}px)`
           }}
-        >
-          <ListItem
-            button
-            onClick={() => {
-              this.props.refresh(this.props.current.id);
-            }}
-          >
-            <ListItemText primary="更新" />
-          </ListItem>
-        </AppBar>
-        <Table
-          files={this.props.files}
-          height={tableHeight}
-          onSelected={(file) => {
-            handleSelected(file.type, file.id);
+          data={files}
+          showPagination={false}
+          defaultPageSize={300}
+          getTdProps={(state, row, col, inst) => {
+            return {
+              onClick: (e, handleOriginal) => {
+                const file = row && row.original;
+                if (file) {
+                  cd(file.type, file.id);
+                }
+              }
+            };
           }}
+          defaultSorted={[{
+            id: 'mtime',
+            desc: true
+          }]}
+          columns={[
+            {
+              Header: 'Name',
+              id: 'name',
+              accessor: 'name'
+            },
+            {
+              Header: '更新日時',
+              id: 'mtime',
+              width: 200,
+              resizable: false,
+              accessor: f => moment(f.mtime).format('YYYY/MM/DD hh:mm:ss')
+            },
+            {
+              Header: 'サイズ',
+              id: 'size',
+              accessor: f => filesize(f.size),
+              width: 120,
+              style: {
+                'textAlign': 'right'
+              }
+            }
+          ]}
         />
-      </div>
+      </AppBase>
     );
   }
 }
 
 Directory.propTypes = {
-  current: PropTypes.shape(File.shape).isRequired,
-  files: PropTypes.arrayOf(PropTypes.shape(File.shape)).isRequired,
-  handleSelected: PropTypes.func.isRequired,
+  current: PropTypes.instanceOf(File),
+  files: PropTypes.arrayOf( PropTypes.instanceOf(File) ),
+  cd: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
 };
 
