@@ -18,12 +18,13 @@ export const actions = {
   toggle_reverse: () => ({
     type: actionTypes.TOGGLE_REVERSE,
   }),
-  loaded_meta: (type, id, pageCount) => ({
+  loaded_meta: (type, id, pageCount, page = 0) => ({
     type: actionTypes.LOADED_META,
     payload: {
       id,
       type,
-      pageCount
+      pageCount,
+      page
     }
   }),
   loaded_image: (page, image) => ({

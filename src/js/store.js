@@ -3,7 +3,8 @@ import createSagaMiddleware from 'redux-saga';
 import rootSaga from './sagas';
 import reducers from './reducers';
 import { routerMiddleware } from 'connected-react-router';
-import { createHashHistory } from 'history';
+// import { createHashHistory as createHistory } from 'history';
+import { createBrowserHistory as createHistory } from 'history';
 
 const sagaMiddleare = createSagaMiddleware();
 
@@ -12,7 +13,7 @@ const sagaMiddleare = createSagaMiddleware();
 const composer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 /* eslint-enable */
 
-export const history = createHashHistory();
+export const history = createHistory();
 
 const store = createStore(
   reducers(history),

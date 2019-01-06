@@ -7,14 +7,14 @@ import {
   spawn,
   select
 } from 'redux-saga/effects';
-import { LOCATION_CHANGE } from 'react-router-redux';
+import { LOCATION_CHANGE } from 'connected-react-router';
 import { matchPath } from 'react-router-dom';
 
 import { actions, actionTypes } from './action';
 import {
   actions as commonActions,
 } from '../common/action';
-import { book } from '../../utils/ajax';
+import { book, bookmark } from '../../utils/ajax';
 import {
   extComponentMap,
   imageBufferLength,
@@ -40,11 +40,24 @@ function* loadMeta() {
     if (bookExts.indexOf(type) === -1) {
       return;
     }
+    let page = 0;
+    if (location.search.length !== 0) {
+      const qparams = {};
+      location.search.substr(1).split('&').forEach((kv) => {
+        const [
+          key, value
+        ] = kv.split('=');
+        qparams[key] = value;
+      });
+      if (qparams.index) {
+        page = parseInt(qparams.index);
+      }
+    }
     yield put(actions.reset());
     try {
       const result = yield call(book.getMeta, type, id);
-      yield put(actions.loaded_meta(type, id, result.data.fileCount));
-      loadImagesTask = yield fork(loadImages, type, id, 0);
+      yield put(actions.loaded_meta(type, id, result.data.fileCount, page));
+      loadImagesTask = yield fork(loadImages, type, id, page);
     } catch (e) { }
   }
 }
@@ -63,7 +76,9 @@ function* changePage(action) {
     id
   } = yield select(state => state.book);
   const page = action.payload;
-  console.log({loadImages, type, id, page});
+  try {
+    yield call(bookmark.save, id, page);
+  } catch (e) { }
   yield call(cancelLoad);
   loadImagesTask = yield fork(loadImages, type, id, page);
 }

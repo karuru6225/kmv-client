@@ -15,13 +15,13 @@ const defaultState = {
 export default handleActions({
   [actionTypes.RESET]: () => defaultState,
   [actionTypes.LOADED_META]: (prevState, action) => {
+    console.log(action);
     return {
+      ...defaultState,
       id: action.payload.id,
       type: action.payload.type,
-      pageCount: action.payload.pageCount,
-      cached: '',
-      images: [],
-      page: 0
+      pageCount: parseInt(action.payload.pageCount),
+      page: parseInt(action.payload.page),
     };
   },
   [actionTypes.CHANGE_PAGE]: (prevState, action) => {

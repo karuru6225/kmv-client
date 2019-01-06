@@ -74,6 +74,20 @@ export const directory = {
   }
 };
 
+export const bookmark = {
+  getList: () => {
+    store.dispatch(commonAction.load_start());
+    return inst.get('bookmark');
+  },
+  save: (fileId, index, auto = true) => {
+    return inst.post('bookmark', {
+      fileId,
+      index,
+      auto
+    })
+  }
+};
+
 export const book = {
   getMeta: (type, id) => {
     store.dispatch(commonAction.load_start());

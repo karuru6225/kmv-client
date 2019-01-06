@@ -15,7 +15,8 @@ function* getPage() {
   if (authPages) {
     return false;
   }
-  return matchPath(pathname, '/*/:id')
+  return matchPath(pathname, '/:type/:id')
+    || matchPath(pathname, '/:type')
     || matchPath(pathname, '/');
 }
 
@@ -23,13 +24,21 @@ function* changeCurrent(action) {
   const page = yield call(getPage);
   if (page) {
     const {
+      type,
       id
     } = page.params;
-    try {
-      const result = yield call(file.get, id);
-      yield put(actions.change_current(result.data));
-    } catch (e) {
-      console.log(e);
+    console.log(page.params);
+    if (type === 'bookmark') {
+      yield put(actions.change_current({
+        name: 'bookmark'
+      }));
+    } else {
+      try {
+        const result = yield call(file.get, id);
+        yield put(actions.change_current(result.data));
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 }

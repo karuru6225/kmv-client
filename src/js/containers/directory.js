@@ -1,7 +1,7 @@
 import { connect } from 'react-redux';
-import { push } from 'react-router-redux';
+import { push } from 'connected-react-router';
 
-import Directory from '../components/directory/index.jsx';
+import FileList from '../components/common/file-list.jsx';
 import { actions } from '../modules/directory/action';
 import File from '../models/file';
 import { getUrlFromFile } from '../utils/consts';
@@ -17,9 +17,18 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    cd: (type, id) => {
+    cd: (type, id, index = 0) => {
       const url = getUrlFromFile(type, id);
-      dispatch(push(url));
+      let params = {
+        pathname: url
+      };
+      if (index !== 0) {
+        params = {
+          search: `?index=${index}`,
+          pathname: url,
+        };
+      }
+      dispatch(push(params));
     },
     refresh: () => {
       dispatch(actions.refresh());
@@ -33,4 +42,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Directory);
+)(FileList);
