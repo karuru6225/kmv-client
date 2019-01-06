@@ -1,17 +1,18 @@
 import { connect } from 'react-redux';
-import { push } from 'react-router-redux';
+import { push } from 'connected-react-router';
 
-import Directory from '../components/directory/index.jsx';
-import { actions } from '../modules/directory/action';
+import Book from '../components/book/index.jsx';
+import { actions } from '../modules/book/action';
 import File from '../models/file';
 import { getUrlFromFile } from '../utils/consts';
 
 function mapStateToProps(state) {
   return {
     current: new File(state.common.current_file),
-    files: state.directory.files.map(f => new File(f)),
-    sort_column: state.directory.sort_column,
-    sort_desc: state.directory.sort_desc
+    pageCount: state.book.pageCount,
+    page: state.book.page,
+    images: state.book.images,
+    reverse: state.book.reverse,
   };
 }
 
@@ -21,11 +22,11 @@ function mapDispatchToProps(dispatch) {
       const url = getUrlFromFile(type, id);
       dispatch(push(url));
     },
-    refresh: () => {
-      dispatch(actions.refresh());
+    change_page: (page) => {
+      dispatch(actions.change_page(page));
     },
-    sort_condition: (column, desc) => {
-      dispatch(actions.sort_condition(column, desc));
+    toggle_reverse: () => {
+      dispatch(actions.toggle_reverse());
     }
   };
 }
@@ -33,4 +34,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(Directory);
+)(Book);

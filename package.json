@@ -4,8 +4,10 @@
   "description": "",
   "main": ".eslintrc.js",
   "scripts": {
-    "dev": "parcel --no-hmr --no-cache src/html/index.html",
-    "build": "rm -rf ./dist && parcel build --public-url /kmv/ --no-source-maps --no-cache src/html/index.html"
+    "https": "parcel --no-hmr --no-cache src/html/index.html --https",
+    "http": "parcel --no-hmr --no-cache src/html/index.html",
+    "build": "rm -rf ./dist && parcel build --public-url /kmv/ --no-source-maps --no-cache src/html/index.html && cp src/img/favicon.ico dist/",
+    "deploy": "npm run build && scp -r dist/* karuru.info:kmv-server/pub/"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +15,7 @@
   "devDependencies": {
     "@material-ui/core": "^3.7.1",
     "@material-ui/icons": "^3.0.1",
+    "axios": "^0.18.0",
     "babel-core": "^6.26.3",
     "babel-plugin-root-import": "^6.1.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
@@ -26,10 +29,12 @@
     "moment": "^2.23.0",
     "parcel-bundler": "^1.11.0",
     "prop-types": "^15.6.2",
+    "randomstring": "^1.1.5",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
     "react-redux": "^6.0.0",
     "react-router-dom": "^4.3.1",
+    "react-table": "^6.8.6",
     "redux": "^4.0.1",
     "redux-actions": "^2.6.4",
     "redux-saga": "^0.16.2",
@@ -38,10 +43,8 @@
   },
   "dependencies": {
     "@videojs/http-streaming": "^1.6.0",
-    "axios": "^0.18.0",
-    "randomstring": "^1.1.5",
+    "react-measure": "^2.2.2",
     "react-router-redux": "^4.0.8",
-    "react-table": "^6.8.6",
-    "videojs": "^1.0.0"
+    "video.js": "^7.4.1"
   }
 }

@@ -1,5 +1,4 @@
 import { compose, createStore, applyMiddleware } from 'redux';
-import persistState from 'redux-sessionstorage';
 import createSagaMiddleware from 'redux-saga';
 import rootSaga from './sagas';
 import reducers from './reducers';
@@ -21,8 +20,7 @@ const store = createStore(
     applyMiddleware(
       routerMiddleware(history),
       sagaMiddleare
-    ),
-    persistState()
+    )
   )
 );
 

@@ -14,7 +14,7 @@ export default handleActions({
   }),
   [actionTypes.LOAD_FINISH]: state => ({
     ...state,
-    loading: state.loading - 1
+    loading: Math.max(state.loading - 1, 0)
   }),
   [actionTypes.CHANGE_CURRENT]: (state, action) => ({
     ...state,

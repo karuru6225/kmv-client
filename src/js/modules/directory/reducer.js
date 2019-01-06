@@ -4,6 +4,8 @@ import File from '../../models/file';
 
 const defaultState = {
   files: [],
+  sort_column: 'mtime',
+  sort_desc: true
 };
 
 export default handleActions({
@@ -20,4 +22,9 @@ export default handleActions({
   [actionTypes.LOAD_FAILED]: (_, action) => ({
     ...defaultState
   }),
+  [actionTypes.SORT_CONDITION]: (prevState, action) => ({
+    ...prevState,
+    sort_column: action.payload.column,
+    sort_desc: !!action.payload.desc
+  })
 }, defaultState);

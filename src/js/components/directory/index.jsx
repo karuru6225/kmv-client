@@ -32,7 +32,10 @@ class Directory extends React.Component {
     const {
       current,
       cd,
-      files
+      sort_condition,
+      files,
+      sort_column,
+      sort_desc,
     } = this.props;
     return (
       <AppBase
@@ -46,8 +49,8 @@ class Directory extends React.Component {
             height: `calc(100vh - ${headerHeight}px)`
           }}
           data={files}
-          showPagination={false}
-          defaultPageSize={300}
+          pageSize={Math.min(300, Math.max(files.length, 20))}
+          pageSizeOptions={[ ]}
           getTdProps={(state, row, col, inst) => {
             return {
               onClick: (e, handleOriginal) => {
@@ -59,9 +62,16 @@ class Directory extends React.Component {
             };
           }}
           defaultSorted={[{
-            id: 'mtime',
-            desc: true
+            id: sort_column,
+            desc: sort_desc
           }]}
+          onSortedChange={(newSorted, column, shiftKey) => {
+            const {
+              id,
+              desc
+            } = newSorted[0];
+            sort_condition(id, desc);
+          }}
           columns={[
             {
               Header: 'Name',
@@ -73,12 +83,13 @@ class Directory extends React.Component {
               id: 'mtime',
               width: 200,
               resizable: false,
-              accessor: f => moment(f.mtime).format('YYYY/MM/DD hh:mm:ss')
+              accessor: f => moment(f.mtime).utcOffset(9).format('YYYY/MM/DD HH:mm:ss')
             },
             {
               Header: 'サイズ',
               id: 'size',
-              accessor: f => filesize(f.size),
+              accessor: 'size',
+              Cell: r => filesize(r.value),
               width: 120,
               style: {
                 'textAlign': 'right'
@@ -96,6 +107,9 @@ Directory.propTypes = {
   files: PropTypes.arrayOf( PropTypes.instanceOf(File) ),
   cd: PropTypes.func.isRequired,
   refresh: PropTypes.func.isRequired,
+  sort_condition: PropTypes.func.isRequired,
+  sort_column: PropTypes.string.isRequired,
+  sort_desc: PropTypes.bool.isRequired,
 };
 
 export default Directory;

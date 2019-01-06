@@ -1,6 +1,12 @@
 import pathToRegexp from 'path-to-regexp';
-import Dummy from '../containers/dummy';
+import Book from '../containers/book';
 import Movie from '../containers/movie';
+import Dummy from '../containers/dummy';
+
+export const imageBufferLength = 10;
+export const  BOOK_NO_CACHE = '0';
+export const  BOOK_LOADING = '1';
+export const  BOOK_CACHED = '2';
 
 export const extComponentMap = [
   {
@@ -10,7 +16,7 @@ export const extComponentMap = [
   {
     key: 'book',
     exts: ['zip', 'pdf'],
-    component: Dummy
+    component: Book
   },
   {
     key: 'movie',

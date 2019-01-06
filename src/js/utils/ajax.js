@@ -9,11 +9,6 @@ const inst = axios.create({
   baseURL: process.env.API_ENTRY
 });
 
-inst.interceptors.request.use((config) => {
-  store.dispatch(commonAction.load_start());
-  return config;
-});
-
 inst.interceptors.response.use((response) => {
   store.dispatch(commonAction.load_finish());
   return response;
@@ -49,23 +44,53 @@ export const clearToken = () => {
 
 export const auth = {
   login: (username, password) => {
+    store.dispatch(commonAction.load_start());
     return inst.post('auth', {
       username,
       password
     });
   },
   logout: () => {
+    store.dispatch(commonAction.load_start());
     return inst.delete('auth');
   }
 };
 
 export const file = {
-  get: id => inst.get(`file/${id||''}`)
+  get: (id) => {
+    store.dispatch(commonAction.load_start());
+    return inst.get(`file/${id||''}`)
+  }
 }
 
 export const directory = {
-  get: id => inst.get(`dir/${id||''}`),
-  refresh: id => inst.put(`dir/${id||''}`)
+  get: (id) => {
+    store.dispatch(commonAction.load_start());
+    return inst.get(`dir/${id||''}`);
+  },
+  refresh: (id) => {
+    store.dispatch(commonAction.load_start());
+    return inst.put(`dir/${id||''}`)
+  }
 };
 
-
+export const book = {
+  getMeta: (type, id) => {
+    store.dispatch(commonAction.load_start());
+    return inst.get(`${type}/${id}`)
+  },
+  getImage: (type, id, page, resolution = 1) => {
+    const r = resolution;
+    const w = Math.round(window.innerWidth * r);
+    const h = Math.round(window.innerHeight * r);
+    const path = r === 1 ? `${type}/${id}/${page}` : `${type}/${id}/${page}/resize/${w}/${h}`
+    return inst.get(path, {
+      responseType: 'blob'
+    }).then((res) => {
+      const URL = window.URL || window.webkitURL;
+      const img = new Image();
+      img.src = URL.createObjectURL(res.data);
+      return img;
+    });
+  }
+};

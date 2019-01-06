@@ -5,7 +5,7 @@ import { actions } from '../modules/auth/action';
 function mapStateToProps(state) {
   return {
     errorMessage: state.auth.errorMessage,
-    sending: state.common.loading
+    sending: state.common.loading !== 0
   };
 }
 

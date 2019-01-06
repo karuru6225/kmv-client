@@ -1,14 +1,13 @@
 import { connect } from 'react-redux';
-import { push } from 'react-router-redux';
+import { push } from 'connected-react-router';
 
 import Movie from '../components/movie/index.jsx';
-// import { actions } from '../modules/movie/action';
 import File from '../models/file';
 import { getUrlFromFile } from '../utils/consts';
 
 function mapStateToProps(state) {
   return {
-    current: new File(state.common.current_file),
+    current: new File(state.common.current_file)
   };
 }
 
