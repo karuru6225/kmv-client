@@ -11,7 +11,7 @@ import { actions, actionTypes } from './action';
 import {
   actions as commonActions,
 } from '../common/action';
-import { directory, bookmark } from '../../utils/ajax';
+import { directory, history } from '../../utils/ajax';
 
 function* getDirPage() {
   const pathname = (yield select(state => state.router.location)).pathname;
@@ -23,14 +23,14 @@ function* getDirPage() {
     });
 }
 
-function* getBookmarkPage() {
+function* getHistoryPage() {
   const pathname = (yield select(state => state.router.location)).pathname;
-  return matchPath(pathname, '/bookmark');
+  return matchPath(pathname, '/history');
 }
 
 function* loadDir(api) {
   const dirPage = yield call(getDirPage);
-  const bookmarkPage = yield call(getBookmarkPage);
+  const historyPage = yield call(getHistoryPage);
   if (dirPage) {
     const {
       id
@@ -43,10 +43,10 @@ function* loadDir(api) {
     } catch (e) {
       yield put(actions.load_failed());
     }
-  } else if (bookmarkPage) {
+  } else if (historyPage) {
     yield put(actions.reset());
     try {
-      const result = yield call(bookmark.getList);
+      const result = yield call(history.getList);
       yield put(actions.load_success(result.data));
     } catch (e) {
       yield put(actions.load_failed());

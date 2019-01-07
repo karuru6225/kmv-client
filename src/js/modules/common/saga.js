@@ -28,9 +28,9 @@ function* changeCurrent(action) {
       id
     } = page.params;
     console.log(page.params);
-    if (type === 'bookmark') {
+    if (type === 'history') {
       yield put(actions.change_current({
-        name: 'bookmark'
+        name: '履歴'
       }));
     } else {
       try {

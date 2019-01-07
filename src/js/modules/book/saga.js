@@ -14,7 +14,7 @@ import { actions, actionTypes } from './action';
 import {
   actions as commonActions,
 } from '../common/action';
-import { book, bookmark } from '../../utils/ajax';
+import { book, history } from '../../utils/ajax';
 import {
   extComponentMap,
   imageBufferLength,
@@ -77,7 +77,7 @@ function* changePage(action) {
   } = yield select(state => state.book);
   const page = action.payload;
   try {
-    yield call(bookmark.save, id, page);
+    yield call(history.save, id, page);
   } catch (e) { }
   yield call(cancelLoad);
   loadImagesTask = yield fork(loadImages, type, id, page);

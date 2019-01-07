@@ -1,6 +1,7 @@
 import { connect } from 'react-redux';
 import { push } from 'connected-react-router';
 
+import { actions } from '../modules/movie/action';
 import Movie from '../components/movie/index.jsx';
 import File from '../models/file';
 import { getUrlFromFile } from '../utils/consts';
@@ -17,6 +18,9 @@ function mapDispatchToProps(dispatch) {
       const url = getUrlFromFile(type, id);
       dispatch(push(url));
     },
+    timeupdate: (sec) => {
+      dispatch(actions.timeupdate(sec));
+    }
   };
 }
 

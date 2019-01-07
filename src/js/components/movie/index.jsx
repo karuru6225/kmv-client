@@ -8,6 +8,20 @@ import '@videojs/http-streaming';
 
 import File from '../../models/file';
 import AppBase from '../common/app-base.jsx';
+import {
+  KEY_LEFT,
+  KEY_RIGHT,
+  KEY_UP,
+  KEY_DOWN
+} from '../../utils/consts';
+
+let lastTime = 0;
+const throttle = (delay, callback) => {
+  if (Date.now() - lastTime > delay) {
+    callback();
+    lastTime = Date.now();
+  }
+};
 
 const styles = theme => ({
   container: {
@@ -31,10 +45,28 @@ class Movie extends React.Component {
     this.id = null;
   }
 
+  getStartTime() {
+    let sec = 0;
+    if (location.search.length !== 0) {
+      const qparams = {};
+      location.search.substr(1).split('&').forEach((kv) => {
+        const [
+          key, value
+        ] = kv.split('=');
+        qparams[key] = value;
+      });
+      if (qparams.index) {
+        sec = parseInt(qparams.index);
+      }
+    }
+    return sec;
+  }
+
   initPlayer() {
     const {
       current,
-      token
+      token,
+      timeupdate
     } = this.props;
     if (current.type === 'm3u8'
       && this.id !== current.id) {
@@ -67,13 +99,43 @@ class Movie extends React.Component {
             }
           }
         }
+        throttle(1000, () => {
+          timeupdate(this.player.currentTime());
+        });
       });
+      this.player.currentTime(this.getStartTime());
       this.id = current.id;
+    }
+  }
+
+  handleKey = (e) => {
+    switch(e.keyCode) {
+      case KEY_LEFT: {
+        const time = this.player.currentTime();
+        this.player.currentTime(time - 5);
+        break;
+      }
+      case KEY_RIGHT: {
+        const time = this.player.currentTime();
+        this.player.currentTime(time + 5);
+        break;
+      }
+      case KEY_UP: {
+        const vol = this.player.volume();
+        this.player.volume(vol + 0.05);
+        break;
+      }
+      case KEY_DOWN: {
+        const vol = this.player.volume();
+        this.player.volume(vol - 0.05);
+        break;
+      }
     }
   }
 
   componentDidMount() {
     this.initPlayer();
+    document.addEventListener('keydown', this.handleKey);
   }
 
   componentDidUpdate() {
@@ -84,6 +146,7 @@ class Movie extends React.Component {
     if (this.player) {
       this.player.dispose();
     }
+    document.removeEventListener('keydown', this.handleKey);
   }
 
   render() {
@@ -112,6 +175,7 @@ Movie.propTypes = {
   classes: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
   current: PropTypes.instanceOf(File),
   cd: PropTypes.func.isRequired,
+  timeupdate: PropTypes.func.isRequired
 };
 
 export default withStyles(styles)(Movie);

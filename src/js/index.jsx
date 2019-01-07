@@ -56,7 +56,7 @@ const dirColumns = [
   }
 ];
 
-const bookmarkColumns = [
+const historyColumns = [
   {
     Header: 'Name',
     id: 'name',
@@ -107,9 +107,9 @@ window.addEventListener('DOMContentLoaded', () => {
                     <Directory {...props} columns={dirColumns} />
                     )}
                 />
-                <Route exact path="/bookmark"
+                <Route exact path="/history"
                   render={props =>(
-                    <Directory {...props} columns={bookmarkColumns} />
+                    <Directory {...props} columns={historyColumns} />
                     )}
                 />
                 <Route exact path="/directory/:id"

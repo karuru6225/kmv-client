@@ -3,12 +3,18 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import classnames from 'classnames';
 import Measure from "react-measure";
-
-import File from '../../models/file';
-import AppBase from '../common/app-base.jsx';
 import IconButton from '@material-ui/core/IconButton';
 import InputIcon from '@material-ui/icons/Input';
 import Plus1Icon from '@material-ui/icons/ExposurePlus1';
+
+import File from '../../models/file';
+import AppBase from '../common/app-base.jsx';
+import {
+  KEY_LEFT,
+  KEY_RIGHT,
+  KEY_UP,
+  KEY_DOWN
+} from '../../utils/consts';
 
 const styles = theme => ({
   container: {
@@ -59,6 +65,39 @@ class Book extends React.Component {
           return 2;
       }
     }
+  }
+
+  handleKey = (e) => {
+    const {
+      page,
+      change_page
+    } = this.props;
+    switch(e.keyCode) {
+      case KEY_LEFT: {
+        change_page(page + 2);
+        break;
+      }
+      case KEY_RIGHT: {
+        change_page(page - 2);
+        break;
+      }
+      // case KEY_UP: {
+      //   change_page(page + 1);
+      //   break;
+      // }
+      case KEY_DOWN: {
+        change_page(page + 1);
+        break;
+      }
+    }
+  }
+
+  componentDidMount() {
+    document.addEventListener('keydown', this.handleKey);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKey);
   }
 
   renderHeaderRight() {

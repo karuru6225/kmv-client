@@ -74,13 +74,13 @@ export const directory = {
   }
 };
 
-export const bookmark = {
+export const history = {
   getList: () => {
     store.dispatch(commonAction.load_start());
-    return inst.get('bookmark');
+    return inst.get('history');
   },
   save: (fileId, index, auto = true) => {
-    return inst.post('bookmark', {
+    return inst.post('history', {
       fileId,
       index,
       auto
