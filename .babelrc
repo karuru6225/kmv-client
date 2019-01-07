@@ -1,10 +1,22 @@
 {
   "presets": [
-    "es2015",
+    [
+      "react"
+    ],
+    [
+      "env", 
+      { 
+        "targets": {
+          "browsers": ["last 2 versions"]
+        }
+      }
+    ]
   ],
   "plugins": [
-    "syntax-trailing-function-commas",
-    "transform-class-properties",
-    "transform-object-rest-spread"
+    ["transform-object-rest-spread", { "useBuiltIns": true }],
+    ["transform-class-properties"],
+    ["babel-plugin-root-import", {
+      "rootPathSuffix": "js"
+    }]
   ]
 }

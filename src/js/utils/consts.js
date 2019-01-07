@@ -1,41 +1,59 @@
-import Directory from 'templates/directory.vue';
-import Book from 'templates/book.vue';
-import Movie from 'templates/movie.vue';
-import Download from 'templates/download.vue';
+import pathToRegexp from 'path-to-regexp';
+import Book from '../containers/book';
+import Movie from '../containers/movie';
+import Dummy from '../containers/dummy';
 
-export const extComponentMap = {
-  directory: {
-    path: 'directory',
-    component: Directory
+export const imageBufferLength = 10;
+export const  BOOK_NO_CACHE = '0';
+export const  BOOK_LOADING = '1';
+export const  BOOK_CACHED = '2';
+
+export const KEY_LEFT = 37;
+export const KEY_RIGHT= 39;
+export const KEY_UP = 38;
+export const KEY_DOWN = 40;
+
+export const extComponentMap = [
+  {
+    key: 'dir',
+    exts: ['directory'],
   },
-  zip: {
-    path: 'book',
+  {
+    key: 'book',
+    exts: ['zip', 'pdf'],
     component: Book
   },
-  pdf: {
-    path: 'book',
-    component: Book
-  },
-  m3u8: {
-    path: 'movie',
+  {
+    key: 'movie',
+    exts: ['m3u8'],
     component: Movie
   },
-  any: {
-    path: 'any',
-    component: Download
-  },
-};
+  {
+    key: 'any',
+    exts: ['*'],
+    component: Dummy
+  }
+];
 
-export function getUrlFromFile(file){
+export function getUrlFromFile(type, id) {
   const map = extComponentMap;
-  let url = `${PublicPath}${map['any'].path}/${file.type}/${file.id}`;
-  if(file.type == 'directory'){
-    url = `${PublicPath}directory/${file.id}`;
-  }else if(map[file.type]){
-    const setting = map[file.type];
-    if(setting){
-      url = `${PublicPath}${setting.path}/${file.type}/${file.id}`;
+  const safeId = id && id !== 'undefined' ? id : '';
+  let url = false;
+  for (let i = 0; i < map.length; i += 1) {
+    const match = map[i].exts.reduce((acc, current) => {
+      const regexp = pathToRegexp(current);
+      if (regexp.test(type)) {
+        return true;
+      }
+      return acc;
+    }, false);
+    if (match && url === false) {
+      url = `/${type}/${safeId}`;
     }
   }
   return url;
 }
+
+export const storage = localStorage;
+
+export const storageKey = 'kmv-token';
