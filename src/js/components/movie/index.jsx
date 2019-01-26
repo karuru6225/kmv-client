@@ -7,7 +7,7 @@ import 'video.js/dist/video-js.css';
 import '@videojs/http-streaming';
 
 import File from '../../models/file';
-import AppBase from '../common/app-base.jsx';
+import AppBase from '../../containers/app-base.js';
 import {
   KEY_LEFT,
   KEY_RIGHT,
@@ -43,6 +43,10 @@ class Movie extends React.Component {
     this.videoRef = React.createRef();
     this.player = null;
     this.id = null;
+    this.state = {
+      duration: 0,
+      current: 0
+    };
   }
 
   getStartTime() {
@@ -66,12 +70,15 @@ class Movie extends React.Component {
     const {
       current,
       token,
+      is_playing_bookmark,
       timeupdate
     } = this.props;
     if (current.type === 'm3u8'
       && this.id !== current.id) {
+      this.id = current.id;
       this.player = videojs(this.videoRef.current, {
         controls: true,
+        autoplay: is_playing_bookmark,
         seekToLive: true,
         controlBar: {
           liveDisplay: false
@@ -98,13 +105,16 @@ class Movie extends React.Component {
               this.player.duration(lastDuration);
             }
           }
+          this.setState({
+            duration,
+            current: this.player.currentTime()
+          });
         }
         throttle(1000, () => {
-          timeupdate(this.player.currentTime());
+          timeupdate(this.id, this.player.currentTime());
         });
       });
       this.player.currentTime(this.getStartTime());
-      this.id = current.id;
     }
   }
 
@@ -152,13 +162,10 @@ class Movie extends React.Component {
   render() {
     const {
       classes,
-      current,
-      cd
+      is_playing_bookmark,
     } = this.props;
     return (
       <AppBase
-        current={current}
-        cd={cd}
       >
         <div className={classnames(classes.container)}>
           <video
@@ -174,8 +181,8 @@ class Movie extends React.Component {
 Movie.propTypes = {
   classes: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
   current: PropTypes.instanceOf(File),
-  cd: PropTypes.func.isRequired,
-  timeupdate: PropTypes.func.isRequired
+  timeupdate: PropTypes.func.isRequired,
+  is_playing_bookmark: PropTypes.bool.isRequired,
 };
 
 export default withStyles(styles)(Movie);

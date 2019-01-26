@@ -27,16 +27,18 @@ export const actions = {
       page
     }
   }),
-  loaded_image: (page, image) => ({
+  loaded_image: (id, page, image) => ({
     type: actionTypes.LOADED_IMAGE,
     payload: {
+      id,
       page,
       image
     }
   }),
-  update_cache: (page, state) => ({
+  update_cache: (id, page, state) => ({
     type: actionTypes.UPDATE_CACHE,
     payload: {
+      id,
       page,
       state
     }

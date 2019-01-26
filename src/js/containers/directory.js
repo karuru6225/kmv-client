@@ -3,6 +3,8 @@ import { push } from 'connected-react-router';
 
 import FileList from '../components/common/file-list.jsx';
 import { actions } from '../modules/directory/action';
+import { actions as historyActions } from '../modules/history/action';
+import { actions as bookmarkActions } from '../modules/bookmark/action';
 import File from '../models/file';
 import { getUrlFromFile } from '../utils/consts';
 
@@ -11,7 +13,8 @@ function mapStateToProps(state) {
     current: new File(state.common.current_file),
     files: state.directory.files.map(f => new File(f)),
     sort_column: state.directory.sort_column,
-    sort_desc: state.directory.sort_desc
+    sort_desc: state.directory.sort_desc,
+    is_playing_bookmark: !!state.bookmark.playing,
   };
 }
 
@@ -30,8 +33,29 @@ function mapDispatchToProps(dispatch) {
       }
       dispatch(push(params));
     },
+    select_bookmark_list: (id) => {
+      dispatch(push(`bookmark/${id}`));
+    },
+    delete_bookmark_list: (id) => {
+      console.log(`del bl ${id}`);
+    },
+    play_bookmark_list: (id) => {
+      dispatch(bookmarkActions.play(id));
+    },
+    next_bookmark: () => {
+      dispatch(bookmarkActions.next());
+    },
+    delete_bookmark: (id) => {
+      console.log(`del b ${id}`);
+    },
     refresh: () => {
       dispatch(actions.refresh());
+    },
+    delete_history: (id) => {
+      dispatch(historyActions.delete(id));
+    },
+    clear_history: () => {
+      dispatch(historyActions.deleteAll());
     },
     sort_condition: (column, desc) => {
       dispatch(actions.sort_condition(column, desc));

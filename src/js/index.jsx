@@ -4,8 +4,6 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { Route, Switch } from 'react-router-dom';
 import { ConnectedRouter as Router } from 'connected-react-router';
-import moment from 'moment';
-import filesize from 'filesize';
 import store, { history } from './store';
 import Dummy from './containers/dummy';
 import Auth from './containers/auth';
@@ -31,63 +29,6 @@ extComponentMap.forEach((app) => {
   });
 });
 
-const dirColumns = [
-  {
-    Header: 'Name',
-    id: 'name',
-    accessor: 'name'
-  },
-  {
-    Header: '更新日時',
-    id: 'mtime',
-    width: 200,
-    resizable: false,
-    accessor: f => moment(f.mtime).utcOffset(9).format('YYYY/MM/DD HH:mm:ss')
-  },
-  {
-    Header: 'サイズ',
-    id: 'size',
-    accessor: 'size',
-    Cell: r => filesize(r.value),
-    width: 120,
-    style: {
-      'textAlign': 'right'
-    }
-  }
-];
-
-const historyColumns = [
-  {
-    Header: 'Name',
-    id: 'name',
-    accessor: 'name'
-  },
-  {
-    Header: 'Index',
-    id: 'index',
-    width: 100,
-    accessor: 'index'
-  },
-  {
-    Header: '更新日時',
-    id: 'mtime',
-    width: 200,
-    resizable: false,
-    accessor: f => moment(f.mtime).utcOffset(9).format('YYYY/MM/DD HH:mm:ss')
-  },
-  {
-    Header: 'サイズ',
-    id: 'size',
-    accessor: 'size',
-    Cell: r => filesize(r.value),
-    width: 120,
-    style: {
-      'textAlign': 'right'
-    }
-  }
-];
-
-
 window.addEventListener('DOMContentLoaded', () => {
   render(
     <Provider store={store}>
@@ -99,22 +40,32 @@ window.addEventListener('DOMContentLoaded', () => {
               <Switch>
                 <Route exact path="/"
                   render={props =>(
-                    <Directory {...props} columns={dirColumns} />
+                    <Directory {...props} column_type="dir" />
                     )}
                 />
                 <Route exact path="/directory"
                   render={props =>(
-                    <Directory {...props} columns={dirColumns} />
+                    <Directory {...props} column_type="dir" />
                     )}
                 />
                 <Route exact path="/history"
                   render={props =>(
-                    <Directory {...props} columns={historyColumns} />
+                    <Directory {...props} column_type="history" />
                     )}
                 />
                 <Route exact path="/directory/:id"
                   render={props =>(
-                    <Directory {...props} columns={dirColumns} />
+                    <Directory {...props} column_type="dir" />
+                    )}
+                />
+                <Route exact path="/bookmark"
+                  render={props =>(
+                    <Directory {...props} column_type="bookmark-list" />
+                    )}
+                />
+                <Route exact path="/bookmark/:id"
+                  render={props =>(
+                    <Directory {...props} column_type="bookmark" />
                     )}
                 />
                 { componentsMap }

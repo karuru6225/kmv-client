@@ -8,7 +8,7 @@ import InputIcon from '@material-ui/icons/Input';
 import Plus1Icon from '@material-ui/icons/ExposurePlus1';
 
 import File from '../../models/file';
-import AppBase from '../common/app-base.jsx';
+import AppBase from '../../containers/app-base.js';
 import {
   KEY_LEFT,
   KEY_RIGHT,
@@ -47,6 +47,19 @@ class Book extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
+    if (props.reverse) {
+      this.actionMappings = {
+        left: this.nextPage,
+        center: () => {},
+        right: this.prevPage
+      };
+    } else {
+      this.actionMappings = {
+        left: this.prevPage,
+        center: () => {},
+        right: this.prevPage
+      };
+    }
   }
 
   getPageDelta(idx) {
@@ -67,6 +80,51 @@ class Book extends React.Component {
     }
   }
 
+  nextPage = () => {
+    const {
+      page,
+      change_page
+    } = this.props;
+    change_page(page + 2);
+  }
+
+  prevPage = () => {
+    const {
+      page,
+      change_page
+    } = this.props;
+    change_page(page - 2);
+  }
+
+  onePage = () => {
+    const {
+      page,
+      change_page
+    } = this.props;
+    change_page(page + 1);
+  }
+
+  handleClick = (e) => {
+    console.log(e);
+    console.log(`${this.state.width}, ${this.state.height} => ${e.clientX}, ${e.clientY}`);
+    const {
+      clientX: x,
+      clientY: y
+    } = e;
+    const {
+      width: w,
+      height: h
+    } = this.state;
+    if (x < w / 3) {
+      this.actionMappings.left();
+    } else if ( w / 3 <= x
+      && x < w * 2 / 3 ) {
+      this.actionMappings.center();
+    } else {
+      this.actionMappings.right();
+    }
+  }
+
   handleKey = (e) => {
     const {
       page,
@@ -74,11 +132,11 @@ class Book extends React.Component {
     } = this.props;
     switch(e.keyCode) {
       case KEY_LEFT: {
-        change_page(page + 2);
+        this.nextPage();
         break;
       }
       case KEY_RIGHT: {
-        change_page(page - 2);
+        this.prevPage();
         break;
       }
       // case KEY_UP: {
@@ -86,8 +144,11 @@ class Book extends React.Component {
       //   break;
       // }
       case KEY_DOWN: {
-        change_page(page + 1);
+        this.onePage();
         break;
+      }
+      default: {
+        console.log(e.keyCode);
       }
     }
   }
@@ -138,6 +199,15 @@ class Book extends React.Component {
     if (pageCount !== 0) {
       targetImages = images.slice(page, page + 2);
     }
+    if (targetImages.length === 1) {
+      targetImages.push({
+        height: 1,
+        width: 1,
+        image: {
+          src: ''
+        }
+      });
+    }
     if (reverse) {
       targetImages.reverse();
     }
@@ -162,17 +232,19 @@ class Book extends React.Component {
   render() {
     const {
       classes,
-      current,
-      cd,
+      images,
       page,
+      reverse,
       change_page,
     } = this.props;
     const renderImages = this.getRenderImages();
     return (
       <AppBase
-        current={current}
-        cd={cd}
         headerRight={this.renderHeaderRight()}
+        show_progress={true}
+        reverse_progress={reverse}
+        max_pos={images.length}
+        current_pos={page}
       >
         <Measure
           bounds
@@ -182,12 +254,12 @@ class Book extends React.Component {
             <div
               ref={measureRef}
               className={classnames(classes.container)}
+              onClick={this.handleClick}
             >  
               { renderImages.map((item, idx) => (
               <div
                 key={item.key}
                 className={classes.imageContainer}
-                onClick={e => change_page(page + this.getPageDelta(idx))}
               >
                 <img
                   src={item.image.src}
@@ -207,8 +279,12 @@ class Book extends React.Component {
 
 Book.propTypes = {
   classes: PropTypes.object.isRequired, // eslint-disable-line react/forbid-prop-types
-  current: PropTypes.instanceOf(File),
-  cd: PropTypes.func.isRequired,
+  pageCount: PropTypes.number.isRequired,
+  page: PropTypes.number.isRequired,
+  images: PropTypes.array.isRequired,
+  reverse: PropTypes.bool.isRequired,
+  change_page: PropTypes.func.isRequired,
+  toggle_reverse: PropTypes.func.isRequired,
 };
 
 export default withStyles(styles)(Book);

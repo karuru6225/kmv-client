@@ -39,11 +39,15 @@ export default handleActions({
   }),
   [actionTypes.LOADED_IMAGE]: (prevState, action) => {
     const {
+      id,
       page,
       image
     } = action.payload;
     if (prevState.pageCount <= 0
-    || prevState.pageCount <= page) {
+    || prevState.pageCount <= page
+    || prevState.id !== id ) {
+      console.log(`${prevState.id} !== ${id}`);
+      console.log('id miss match');
       return prevState;
     }
     const newImages = prevState.images.slice();
@@ -56,9 +60,15 @@ export default handleActions({
   [actionTypes.UPDATE_CACHE]: (prevState, action) => {
     const cacheArry = prevState.cached.split(',');
     const {
+      id,
       page,
       state
     } = action.payload;
+    if (prevState.id !== id) {
+      console.log(`${prevState.id} !== ${id}`);
+      console.log('id miss match');
+      return prevState;
+    }
     cacheArry[page] = state;
     return {
       ...prevState,

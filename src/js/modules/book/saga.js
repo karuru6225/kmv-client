@@ -14,7 +14,10 @@ import { actions, actionTypes } from './action';
 import {
   actions as commonActions,
 } from '../common/action';
-import { book, history } from '../../utils/ajax';
+import {
+  actions as historyActions,
+} from '../history/action';
+import { book } from '../../utils/ajax';
 import {
   extComponentMap,
   imageBufferLength,
@@ -77,7 +80,7 @@ function* changePage(action) {
   } = yield select(state => state.book);
   const page = action.payload;
   try {
-    yield call(history.save, id, page);
+    yield put(historyActions.update(id, page));
   } catch (e) { }
   yield call(cancelLoad);
   loadImagesTask = yield fork(loadImages, type, id, page);
@@ -97,18 +100,18 @@ function* loadImages(type, id, page) {
       || cached[targetIndex] === BOOK_CACHED ) {
       continue;
     }
-    yield put(actions.update_cache(targetIndex, BOOK_LOADING));
+    yield put(actions.update_cache(id, targetIndex, BOOK_LOADING));
     yield spawn(loadImage, type, id, targetIndex);
   }
 }
 
 function* loadImage(type, id, page, iter = 0) {
   try {
-    const image = yield call(book.getImage, type, id, page, 3/4);
-    yield put(actions.loaded_image(page, image));
-    yield put(actions.update_cache(page, BOOK_CACHED));
+    const image = yield call(book.getImage, type, id, page, 2);
+    yield put(actions.loaded_image(id, page, image));
+    yield put(actions.update_cache(id, page, BOOK_CACHED));
   } catch(e) {
-    yield put(actions.update_cache(page, BOOK_NO_CACHE));
+    yield put(actions.update_cache(id, page, BOOK_NO_CACHE));
     if (iter < 5) {
       yield spawn(loadImage, type, id, page, iter + 1);
     }

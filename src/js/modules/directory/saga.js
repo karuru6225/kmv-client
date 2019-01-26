@@ -11,7 +11,7 @@ import { actions, actionTypes } from './action';
 import {
   actions as commonActions,
 } from '../common/action';
-import { directory, history } from '../../utils/ajax';
+import { directory } from '../../utils/ajax';
 
 function* getDirPage() {
   const pathname = (yield select(state => state.router.location)).pathname;
@@ -23,14 +23,8 @@ function* getDirPage() {
     });
 }
 
-function* getHistoryPage() {
-  const pathname = (yield select(state => state.router.location)).pathname;
-  return matchPath(pathname, '/history');
-}
-
 function* loadDir(api) {
   const dirPage = yield call(getDirPage);
-  const historyPage = yield call(getHistoryPage);
   if (dirPage) {
     const {
       id
@@ -40,14 +34,6 @@ function* loadDir(api) {
       const result = yield call(api, id);
       const files = result.data.files || [];
       yield put(actions.load_success(files));
-    } catch (e) {
-      yield put(actions.load_failed());
-    }
-  } else if (historyPage) {
-    yield put(actions.reset());
-    try {
-      const result = yield call(history.getList);
-      yield put(actions.load_success(result.data));
     } catch (e) {
       yield put(actions.load_failed());
     }

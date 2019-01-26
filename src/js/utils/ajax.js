@@ -80,11 +80,20 @@ export const history = {
     return inst.get('history');
   },
   save: (fileId, index, auto = true) => {
+    if (!fileId || fileId === '') {
+      return;
+    }
     return inst.post('history', {
       fileId,
       index,
       auto
     })
+  },
+  clear: () => {
+    return inst.delete('history');
+  },
+  delete: (id) => {
+    return inst.delete(`history/${id}`);
   }
 };
 
@@ -106,5 +115,20 @@ export const book = {
       img.src = URL.createObjectURL(res.data);
       return img;
     });
+  }
+};
+
+export const bookmark = {
+  getList: () => {
+    store.dispatch(commonAction.load_start());
+    return inst.get('list');
+  },
+  get: (id) => {
+    store.dispatch(commonAction.load_start());
+    return inst.get(`list/${id}`);
+  },
+  getFiles: (id) => {
+    store.dispatch(commonAction.load_start());
+    return inst.get(`list/${id}/files`);
   }
 };
