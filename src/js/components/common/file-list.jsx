@@ -3,8 +3,10 @@ import PropTypes from 'prop-types';
 
 import ReactTable from "react-table";
 import IconButton from '@material-ui/core/IconButton';
+import TextField from '@material-ui/core/TextField';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import DeleteIcon from '@material-ui/icons/Delete';
+import { withStyles } from '@material-ui/core/styles';
 
 import File from '../../models/file';
 import AppBase from '../../containers/app-base.js';
@@ -18,10 +20,32 @@ import {
 import "react-table/react-table.css";
 
 const headerHeight = 48;
+const styles = theme => ({
+  textField: {
+    backgroundColor: theme.palette.background.default,
+    borderRadius: theme.shape.borderRadius
+  },
+});
 
 class Directory extends React.Component {
+  constructor(props) {
+    super(props);
+    this.searchRef = React.createRef();
+    this.state = {
+      searchWord: ''
+    };
+  }
+
+  handleChangeSearch = (e) => {
+    console.log(e.target.value);
+    this.setState({
+      searchWord: e.target.value
+    });
+  }
+
   renderHeaderRight() {
     const {
+      classes,
       refresh,
       clear_history,
       column_type,
@@ -44,14 +68,20 @@ class Directory extends React.Component {
         ];
       case 'dir':
       default:
-        return (
+        return [
+          <TextField
+            type="search"
+            className={classes.textField}
+            inputRef={this.searchRef}
+            onChange={this.handleChangeSearch}
+          />,
           <IconButton
             color="inherit"
             onClick={() => refresh()}
           >
             <RefreshIcon />
           </IconButton>
-        );
+          ];
     }
   }
 
@@ -81,6 +111,12 @@ class Directory extends React.Component {
           return getBookmarkColumns(delete_bookmark);
       }
     })();
+    let _files;
+    if (this.state.searchWord === '') {
+      _files = files;
+    } else {
+      _files = files.filter(f => f.name.includes(this.state.searchWord));
+    }
     return (
       <AppBase headerRight={this.renderHeaderRight()} >
         <ReactTable
@@ -88,7 +124,7 @@ class Directory extends React.Component {
           style={{
             height: `calc(100vh - ${headerHeight}px)`
           }}
-          data={files}
+          data={_files}
           pageSize={Math.min(300, Math.max(files.length, 20))}
           pageSizeOptions={[ ]}
           getTdProps={(state, row, col, inst) => {
@@ -139,4 +175,4 @@ Directory.propTypes = {
   sort_desc: PropTypes.bool.isRequired,
 };
 
-export default Directory;
+export default withStyles(styles)(Directory);

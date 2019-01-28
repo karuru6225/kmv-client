@@ -68,7 +68,7 @@ class AppBase extends React.Component {
         break;
       }
       default: {
-        console.log(e.keyCode);
+        // console.log(e.keyCode);
       }
     }
   }
@@ -211,13 +211,16 @@ class AppBase extends React.Component {
     const {
       current,
       children,
-      headerRight
+      headerRight,
+      current_pos,
+      max_pos
     } = this.props;
+    const title = max_pos > 0 && isFinite(current_pos) ? `${current.name} (${current_pos + 1} / ${max_pos})` : current.name;
     return (
       <div>
         {this.renderProgress()}
         <Layout
-          title={current.name}
+          title={title}
           headerLeft={this.renderHeaderLeft()}
           headerRight={headerRight}
         >

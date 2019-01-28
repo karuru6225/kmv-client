@@ -24,13 +24,7 @@ const styles = theme => ({
     justifyContent: 'center'
   },
   imageContainer: {
-    flexShrink: 1,
-    flexGrow: 1,
-    width: '50vw',
     height: '100%',
-    '&:first-child': {
-      textAlign: 'right'
-    },
     '& > img': {
       width: 'auto',
       height: 'auto',
@@ -47,53 +41,47 @@ class Book extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
-    if (props.reverse) {
+    this.updateActionMappings();
+  }
+
+  updateActionMappings() {
+    const {
+      reverse,
+      toggle_reverse
+    } = this.props;
+    if (reverse) {
       this.actionMappings = {
         left: this.nextPage,
-        center: () => {},
+        up: toggle_reverse,
+        down: this.onePage,
         right: this.prevPage
       };
     } else {
       this.actionMappings = {
         left: this.prevPage,
-        center: () => {},
-        right: this.prevPage
+        up: toggle_reverse,
+        down: this.onePage,
+        right: this.nextPage
       };
-    }
-  }
-
-  getPageDelta(idx) {
-    if (this.props.reverse) {
-      switch(idx) {
-        case 0:
-          return 2;
-        case 1:
-          return -2;
-      }
-    } else {
-      switch(idx) {
-        case 0:
-          return -2;
-        case 1:
-          return 2;
-      }
     }
   }
 
   nextPage = () => {
     const {
       page,
-      change_page
+      change_page,
+      nextDiff,
     } = this.props;
-    change_page(page + 2);
+    change_page(page + nextDiff);
   }
 
   prevPage = () => {
     const {
       page,
-      change_page
+      change_page,
+      prevDiff,
     } = this.props;
-    change_page(page - 2);
+    change_page(page - prevDiff);
   }
 
   onePage = () => {
@@ -105,8 +93,6 @@ class Book extends React.Component {
   }
 
   handleClick = (e) => {
-    console.log(e);
-    console.log(`${this.state.width}, ${this.state.height} => ${e.clientX}, ${e.clientY}`);
     const {
       clientX: x,
       clientY: y
@@ -115,11 +101,11 @@ class Book extends React.Component {
       width: w,
       height: h
     } = this.state;
-    if (x < w / 3) {
+    if (x < w * 2 / 5) {
       this.actionMappings.left();
-    } else if ( w / 3 <= x
-      && x < w * 2 / 3 ) {
-      this.actionMappings.center();
+    } else if ( w * 2 / 5 <= x
+      && x < w * 3 / 5 ) {
+      this.actionMappings.down();
     } else {
       this.actionMappings.right();
     }
@@ -132,19 +118,19 @@ class Book extends React.Component {
     } = this.props;
     switch(e.keyCode) {
       case KEY_LEFT: {
-        this.nextPage();
+        this.actionMappings.left();
         break;
       }
       case KEY_RIGHT: {
-        this.prevPage();
+        this.actionMappings.right();
         break;
       }
-      // case KEY_UP: {
-      //   change_page(page + 1);
-      //   break;
-      // }
+      case KEY_UP: {
+        this.actionMappings.up();
+        break;
+      }
       case KEY_DOWN: {
-        this.onePage();
+        this.actionMappings.down();
         break;
       }
       default: {
@@ -155,6 +141,11 @@ class Book extends React.Component {
 
   componentDidMount() {
     document.addEventListener('keydown', this.handleKey);
+    this.updateActionMappings();
+  }
+
+  componentDidUpdate() {
+    this.updateActionMappings();
   }
 
   componentWillUnmount() {
@@ -194,10 +185,16 @@ class Book extends React.Component {
       images,
       page,
       reverse,
+      singleMode
     } = this.props;
+    const {
+      width: sw,
+      height: sh 
+    } = this.state;
+    const _page = Math.min(page, pageCount - 1);
     let targetImages = [];
     if (pageCount !== 0) {
-      targetImages = images.slice(page, page + 2);
+      targetImages = images.slice(_page, _page + 2);
     }
     if (targetImages.length === 1) {
       targetImages.push({
@@ -208,21 +205,20 @@ class Book extends React.Component {
         }
       });
     }
+    if (singleMode) {
+      targetImages.pop();
+    }
     if (reverse) {
       targetImages.reverse();
     }
-    const {
-      width: sw,
-      height: sh 
-    } = this.state;
-    const ratio = sw/2/sh;
+    const ratio = singleMode ? sw/sh : sw/2/sh;
     return targetImages.map((img, idx) => {
       let cssKey = 'width';
       if (img.width/img.height < ratio) {
         cssKey = 'height';
       }
       return {
-        key: page + idx,
+        key: _page + idx,
         cssKey,
         image: img
       };
@@ -282,6 +278,9 @@ Book.propTypes = {
   pageCount: PropTypes.number.isRequired,
   page: PropTypes.number.isRequired,
   images: PropTypes.array.isRequired,
+  prevDiff: PropTypes.number.isRequired,
+  nextDiff: PropTypes.number.isRequired,
+  singleMode: PropTypes.bool.isRequired,
   reverse: PropTypes.bool.isRequired,
   change_page: PropTypes.func.isRequired,
   toggle_reverse: PropTypes.func.isRequired,

@@ -3,7 +3,7 @@ import Book from '../containers/book';
 import Movie from '../containers/movie';
 import Dummy from '../containers/dummy';
 
-export const imageBufferLength = 10;
+export const imageBufferLength = 20;
 export const  BOOK_NO_CACHE = '0';
 export const  BOOK_LOADING = '1';
 export const  BOOK_CACHED = '2';

@@ -113,7 +113,9 @@ export const book = {
       const URL = window.URL || window.webkitURL;
       const img = new Image();
       img.src = URL.createObjectURL(res.data);
-      return img;
+      return new Promise((resolve) => {
+        img.onload = () => resolve(img);
+      });
     });
   }
 };

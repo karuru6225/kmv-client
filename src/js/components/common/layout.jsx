@@ -15,12 +15,16 @@ const styles = (theme) => ({
   left: {
     marginLeft: -18,
     marginRight: theme.spacing.unit,
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
+    display: 'flex',
+    alignItems: 'center'
   },
   right: {
     marginLeft: theme.spacing.unit,
     marginRight: -18,
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
+    display: 'flex',
+    alignItems: 'center'
   }
 });
 
