@@ -4,9 +4,9 @@
   "description": "",
   "main": ".eslintrc.js",
   "scripts": {
-    "https": "parcel --public-url ${PUBLIC_URL} --no-hmr --no-cache src/html/index.html --https",
-    "http": "parcel --public-url ${PUBLIC_URL} --no-hmr --no-cache src/html/index.html",
-    "build": "rm -rf ./dist && parcel build --public-url ${PUBLIC_URL} --no-source-maps --no-cache src/html/index.html && cp src/img/favicon.ico dist/",
+    "https": "PUBLIC_URL=/kmv parcel --public-url /kmv --no-hmr --no-cache src/html/index.html --https",
+    "http": "PUBLIC_URL=/kmv parcel --public-url /kmv --no-hmr --no-cache src/html/index.html",
+    "build": "PUBLIC_URL=/kmv rm -rf ./dist && parcel build --public-url /kmv --no-source-maps --no-cache src/html/index.html && cp src/img/favicon.ico dist/",
     "deploy": "npm run build && scp -r dist/* karuru.info:kmv-server/pub/"
   },
   "keywords": [],
