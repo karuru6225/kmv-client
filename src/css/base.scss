@@ -14,3 +14,7 @@ div, p, span, input, button {
   box-sizing: border-box;
   user-select: none;
 }
+
+#root {
+  overflow: hidden;
+}
