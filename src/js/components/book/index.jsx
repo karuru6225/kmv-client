@@ -10,6 +10,12 @@ import Plus1Icon from '@material-ui/icons/ExposurePlus1';
 import File from '../../models/file';
 import AppBase from '../../containers/app-base.js';
 import {
+  BOOK_NO_CACHE,
+  BOOK_LOADING,
+  BOOK_CACHED
+} from '../../utils/consts';
+
+import {
   KEY_LEFT,
   KEY_RIGHT,
   KEY_UP,
@@ -34,7 +40,48 @@ const styles = theme => ({
   },
   reverse: {
     transform: 'scaleX(-1)'
-  }
+  },
+  progressBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '3px',
+    zIndex: 100000,
+    backgroundColor: '#eee',
+    display: 'flex'
+  },
+  progressBarR: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '3px',
+    zIndex: 100000,
+    transform: 'scaleX(-1)',
+    backgroundColor: '#eee',
+    display: 'flex'
+  },
+  [`progressCell${BOOK_NO_CACHE}`]: {
+    flexGrow: '1',
+    borderRight: 'solid 1px #ccc',
+    backgroundColor: '#eee'
+  },
+  [`progressCell${BOOK_LOADING}`]: {
+    flexGrow: '1',
+    borderRight: 'solid 1px #ccc',
+    backgroundColor: '#fff'
+  },
+  [`progressCell${BOOK_CACHED}`]: {
+    flexGrow: '1',
+    borderRight: 'solid 1px #ccc',
+    backgroundColor: '#CBFFD3'
+  },
+  progressCellCurrent: {
+    flexGrow: '1',
+    borderRight: 'solid 1px #ccc',
+    backgroundColor: '#FFBEDA'
+  },
 });
 
 class Book extends React.Component {
@@ -42,6 +89,19 @@ class Book extends React.Component {
     super(props);
     this.state = {};
     this.updateActionMappings();
+  }
+
+  componentDidMount() {
+    document.addEventListener('keydown', this.handleKey);
+    this.updateActionMappings();
+  }
+
+  componentDidUpdate() {
+    this.updateActionMappings();
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKey);
   }
 
   updateActionMappings() {
@@ -64,6 +124,52 @@ class Book extends React.Component {
         right: this.nextPage
       };
     }
+  }
+
+  getRenderImages() {
+    const {
+      pageCount,
+      images,
+      page,
+      reverse,
+      singleMode
+    } = this.props;
+    const {
+      width: sw,
+      height: sh 
+    } = this.state;
+    const _page = Math.min(page, pageCount - 1);
+    let targetImages = [];
+    if (pageCount !== 0) {
+      targetImages = images.slice(_page, _page + 2);
+    }
+    if (targetImages.length === 1) {
+      targetImages.push({
+        height: 1,
+        width: 1,
+        image: {
+          src: ''
+        }
+      });
+    }
+    if (singleMode) {
+      targetImages.pop();
+    }
+    if (reverse) {
+      targetImages.reverse();
+    }
+    const ratio = singleMode ? sw/sh : sw/2/sh;
+    return targetImages.map((img, idx) => {
+      let cssKey = 'width';
+      if (img.width/img.height < ratio) {
+        cssKey = 'height';
+      }
+      return {
+        key: _page + idx,
+        cssKey,
+        image: img
+      };
+    });
   }
 
   nextPage = () => {
@@ -139,17 +245,27 @@ class Book extends React.Component {
     }
   }
 
-  componentDidMount() {
-    document.addEventListener('keydown', this.handleKey);
-    this.updateActionMappings();
-  }
-
-  componentDidUpdate() {
-    this.updateActionMappings();
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKey);
+  renderProgress() {
+    const {
+      classes,
+      cacheStatus,
+      reverse,
+      singleMode,
+      page
+    } = this.props;
+    const cacheArray = cacheStatus.split(',');
+    return cacheArray.map((stat, idx) => {
+      if (idx === page
+        || idx === page + 1 && !singleMode ) {
+        return (
+          <div key={`progCell${idx}`} className={classes.progressCellCurrent} />
+        );
+      }
+      const cPostfix = stat === '' ? BOOK_NO_CACHE : stat;
+      return (
+        <div key={`progCell${idx}`} className={classes[`progressCell${cPostfix}`]} />
+      );
+    });
   }
 
   renderHeaderRight() {
@@ -179,56 +295,11 @@ class Book extends React.Component {
       ];
   }
 
-  getRenderImages() {
-    const {
-      pageCount,
-      images,
-      page,
-      reverse,
-      singleMode
-    } = this.props;
-    const {
-      width: sw,
-      height: sh 
-    } = this.state;
-    const _page = Math.min(page, pageCount - 1);
-    let targetImages = [];
-    if (pageCount !== 0) {
-      targetImages = images.slice(_page, _page + 2);
-    }
-    if (targetImages.length === 1) {
-      targetImages.push({
-        height: 1,
-        width: 1,
-        image: {
-          src: ''
-        }
-      });
-    }
-    if (singleMode) {
-      targetImages.pop();
-    }
-    if (reverse) {
-      targetImages.reverse();
-    }
-    const ratio = singleMode ? sw/sh : sw/2/sh;
-    return targetImages.map((img, idx) => {
-      let cssKey = 'width';
-      if (img.width/img.height < ratio) {
-        cssKey = 'height';
-      }
-      return {
-        key: _page + idx,
-        cssKey,
-        image: img
-      };
-    });
-  }
-
   render() {
     const {
       classes,
       images,
+      pageCount,
       page,
       reverse,
       change_page,
@@ -239,9 +310,15 @@ class Book extends React.Component {
         headerRight={this.renderHeaderRight()}
         show_progress={true}
         reverse_progress={reverse}
-        max_pos={images.length}
+        max_pos={pageCount}
         current_pos={page}
       >
+        <div className={classnames({
+          [classes.progressBar]: !reverse,
+          [classes.progressBarR]: reverse
+        })}>
+          {this.renderProgress()}
+        </div>
         <Measure
           bounds
           onResize={rect => this.setState({...rect.bounds})}
@@ -278,6 +355,7 @@ Book.propTypes = {
   pageCount: PropTypes.number.isRequired,
   page: PropTypes.number.isRequired,
   images: PropTypes.array.isRequired,
+  cacheStatus: PropTypes.string.isRequired,
   prevDiff: PropTypes.number.isRequired,
   nextDiff: PropTypes.number.isRequired,
   singleMode: PropTypes.bool.isRequired,

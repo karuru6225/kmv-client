@@ -87,7 +87,7 @@ function* changePage(action) {
 }
 
 function* loadImages(type, id, page) {
-  const cached = (yield select(state => state.book.cached)).split(',');
+  const cacheStatus = (yield select(state => state.book.cacheStatus)).split(',');
   const {
     pageCount
   } = yield select(state => state.book);
@@ -96,8 +96,8 @@ function* loadImages(type, id, page) {
   }
   for(let i = -4; i < imageBufferLength - 4; i++) {
     const targetIndex = (page + i + pageCount) % pageCount;
-    if (cached[targetIndex] === BOOK_LOADING
-      || cached[targetIndex] === BOOK_CACHED ) {
+    if (cacheStatus[targetIndex] === BOOK_LOADING
+      || cacheStatus[targetIndex] === BOOK_CACHED ) {
       continue;
     }
     yield put(actions.update_cache(id, targetIndex, BOOK_LOADING));

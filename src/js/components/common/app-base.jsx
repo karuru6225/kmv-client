@@ -26,21 +26,6 @@ const styles = (theme) => ({
   listItemLink: {
     textDecoration: 'none !important'
   },
-  progressBar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    zIndex: 100000
-  },
-  progressBarR: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    zIndex: 100000,
-    transform: 'scaleX(-1)'
-  },
   stopButton: {
     marginLeft: theme.spacing.unit
   }
@@ -136,26 +121,6 @@ class AppBase extends React.Component {
     });
   }
 
-  renderProgress() {
-    const {
-      classes,
-      show_progress,
-      reverse_progress,
-      current_pos,
-      max_pos
-    } = this.props;
-    if (!show_progress || max_pos === 0) {
-      return null;
-    }
-    const percent = Math.min( current_pos * 100 / max_pos, 100 );
-    return (
-      <LinearProgress
-        variant="determinate"
-        className={reverse_progress ? classes.progressBarR : classes.progressBar}
-        value={percent}
-      />
-    );
-  }
   renderMenuLists () {
     const {
       classes,
@@ -218,7 +183,6 @@ class AppBase extends React.Component {
     const title = max_pos > 0 && isFinite(current_pos) ? `${current.name} (${current_pos + 1} / ${max_pos})` : current.name;
     return (
       <div>
-        {this.renderProgress()}
         <Layout
           title={title}
           headerLeft={this.renderHeaderLeft()}
@@ -253,16 +217,11 @@ AppBase.propTypes = {
   next_bookmark: PropTypes.func.isRequired,
   stop_play_bookmark: PropTypes.func.isRequired,
   isPlaying: PropTypes.bool.isRequired,
-  show_progress: PropTypes.bool,
-  reverse_progress: PropTypes.bool,
   current_pos: PropTypes.number,
   max_pos: PropTypes.number,
 };
 
 AppBase.defaultProps = {
-  show_progress: false,
-  reverse_progress: false,
-  buffered: 0,
   current: 0,
   max_pos: 0
 };

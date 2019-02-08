@@ -39,6 +39,7 @@ function mapStateToProps(state) {
   return {
     pageCount: state.book.pageCount,
     page: state.book.page,
+    cacheStatus: state.book.cacheStatus,
     images: state.book.images,
     reverse: state.book.reverse,
     prevDiff,

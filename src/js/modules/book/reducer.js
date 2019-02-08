@@ -6,7 +6,7 @@ const defaultState = {
   type: '',
   id: '',
   pageCount: 0,
-  cached: '',
+  cacheStatus: '',
   images: [],
   page: 0,
   reverse: true
@@ -58,7 +58,7 @@ export default handleActions({
     };
   },
   [actionTypes.UPDATE_CACHE]: (prevState, action) => {
-    const cacheArry = prevState.cached.split(',');
+    const cacheArry = prevState.cacheStatus.split(',');
     const {
       id,
       page,
@@ -72,7 +72,7 @@ export default handleActions({
     cacheArry[page] = state;
     return {
       ...prevState,
-      cached: cacheArry.join(',')
+      cacheStatus: cacheArry.join(',')
     };
   },
 }, defaultState);
