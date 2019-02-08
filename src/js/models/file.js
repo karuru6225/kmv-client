@@ -9,7 +9,7 @@ export default class {
     id, name, keyword, mtime, size, type, parentId, index
   } = {
       id: `id-${randomString.generate(8)}`,
-      name: `name-${randomString.generate(8)}`,
+      name: '',
       keyword: `keyword-${randomString.generate(8)}`,
       mtime: Date.now() - randomInt(0, 365 * 24 * 60 * 60 * 1000),
       type: 'dirctory',

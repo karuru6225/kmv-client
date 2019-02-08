@@ -27,7 +27,7 @@ function* changeCurrent(action) {
       type,
       id
     } = page.params;
-    console.log(page.params);
+    yield put(actions.reset_current());
     if (type === 'history') {
       yield put(actions.change_current({
         name: '履歴'

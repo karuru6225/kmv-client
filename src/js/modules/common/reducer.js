@@ -16,6 +16,10 @@ export default handleActions({
     ...state,
     loading: Math.max(state.loading - 1, 0)
   }),
+  [actionTypes.RESET_CURRENT]: (state, action) => ({
+    ...state,
+    current_file: (new File()).toJSON()
+  }),
   [actionTypes.CHANGE_CURRENT]: (state, action) => ({
     ...state,
     current_file: action.payload
