@@ -132,5 +132,15 @@ export const bookmark = {
   getFiles: (id) => {
     store.dispatch(commonAction.load_start());
     return inst.get(`list/${id}/files`);
+  },
+  addFile: (listId, fileId) => {
+    store.dispatch(commonAction.load_start());
+    return inst.post(`list/${listId}`, {
+      fileId
+    });
+  },
+  removeFile: (listId, fileId) => {
+    store.dispatch(commonAction.load_start());
+    return inst.delete(`list/${listId}/${fileId}`);
   }
 };

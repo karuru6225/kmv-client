@@ -3,12 +3,19 @@ import { actionTypes } from './action';
 import File from '../../models/file';
 
 const defaultState = {
+  initialized: false,
   playing: null,
   files: [],
-  index: 0
+  index: 0,
+  lists: []
 };
 
 export default handleActions({
+  [actionTypes.LOADED_LISTS]: (prevState, action) => ({
+    ...prevState,
+    initialized: true,
+    lists: action.payload
+  }),
   [actionTypes.PLAY]: (_, action) => ({
     ...defaultState,
     playing: action.payload,

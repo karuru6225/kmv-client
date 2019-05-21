@@ -6,7 +6,7 @@ const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + mi
 
 export default class {
   constructor({
-    id, name, keyword, mtime, size, type, parentId, index
+    id, name, keyword, mtime, size, type, parentId, index, isBookmarked
   } = {
       id: `id-${randomString.generate(8)}`,
       name: '',
@@ -15,16 +15,18 @@ export default class {
       type: 'dirctory',
       size: randomInt(1, 2048 * 1024 * 1024),
       parentId: '',
-      index: 0
+      index: 0,
+      isBookmarked: false
     }) {
     this.id = id;
     this.name = name;
     this.keyword = keyword;
     this.mtime = moment(mtime).valueOf();
     this.type = type;
-    this.size = size;
+    this.size = size || 0;
     this.parentId = parentId;
     this.index = index;
+    this.isBookmarked = isBookmarked;
   }
 
   toJSON() {

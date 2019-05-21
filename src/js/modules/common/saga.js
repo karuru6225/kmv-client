@@ -20,6 +20,21 @@ function* getPage() {
     || matchPath(pathname, '/');
 }
 
+function* changeDirectory(fileId) {
+  const result = yield call(file.get, fileId);
+  const bookmarkList = yield select(s => s.bookmark.lists);
+  let isBookmarked = false;
+  if (bookmarkList.length > 0) {
+    const fileList = bookmarkList.find(b => b.name === 'bookmark').files;
+    console.log(fileList);
+    isBookmarked = fileList.findIndex(f => f.id === fileId) !== -1;
+  }
+  yield put(actions.change_current({
+    ...result.data,
+    isBookmarked
+  }));
+}
+
 function* changeCurrent(action) {
   const page = yield call(getPage);
   if (page) {
@@ -28,16 +43,28 @@ function* changeCurrent(action) {
       id
     } = page.params;
     yield put(actions.reset_current());
-    if (type === 'history') {
-      yield put(actions.change_current({
-        name: '履歴'
-      }));
-    } else {
-      try {
-        const result = yield call(file.get, id);
-        yield put(actions.change_current(result.data));
-      } catch (e) {
-        console.log(e);
+    console.log('common.changeCurrent', page);
+    switch (type) {
+      case 'history': {
+        yield put(actions.change_current({
+          name: '履歴'
+        }));
+        break;
+      }
+      case 'bookmark': {
+        yield put(actions.change_current({
+          name: 'ブックマーク'
+        }));
+        break;
+      }
+      case 'directory':
+      default: {
+        try {
+          const page = yield call(changeDirectory, id);
+        } catch (e) {
+          console.log(e);
+        }
+        break;
       }
     }
   }

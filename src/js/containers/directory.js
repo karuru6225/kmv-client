@@ -46,7 +46,7 @@ function mapDispatchToProps(dispatch) {
       dispatch(bookmarkActions.next());
     },
     delete_bookmark: (id) => {
-      console.log(`del b ${id}`);
+      dispatch(bookmarkActions.remove_from_list(null, id));
     },
     refresh: () => {
       dispatch(actions.refresh());

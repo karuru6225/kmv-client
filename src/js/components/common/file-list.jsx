@@ -85,32 +85,38 @@ class Directory extends React.Component {
     }
   }
 
-  render() {
+  getColumns() {
     const {
-      cd,
-      select_bookmark_list,
       play_bookmark_list,
       delete_bookmark_list,
       delete_bookmark,
       delete_history,
+      column_type,
+    } = this.props;
+    switch (column_type) {
+      case 'dir':
+        return getDirColumns();
+      case 'history':
+        return getHistoryColumns(delete_history);
+      case 'bookmark-list':
+        return getBookmarkListColumns(play_bookmark_list, delete_bookmark_list);
+      case 'bookmark':
+        return getBookmarkColumns(delete_bookmark);
+    }
+  }
+
+  render() {
+    const {
+      cd,
+      select_bookmark_list,
       sort_condition,
       files,
       column_type,
       sort_column,
       sort_desc,
+      match
     } = this.props;
-    const columns = (() => {
-      switch (column_type) {
-        case 'dir':
-          return getDirColumns();
-        case 'history':
-          return getHistoryColumns(delete_history);
-        case 'bookmark-list':
-          return getBookmarkListColumns(play_bookmark_list, delete_bookmark_list);
-        case 'bookmark':
-          return getBookmarkColumns(delete_bookmark);
-      }
-    })();
+    const columns = this.getColumns();
     let _files;
     if (this.state.searchWord === '') {
       _files = files;
@@ -118,7 +124,7 @@ class Directory extends React.Component {
       _files = files.filter(f => f.name.includes(this.state.searchWord));
     }
     return (
-      <AppBase headerRight={this.renderHeaderRight()} >
+      <AppBase headerRight={this.renderHeaderRight()}>
         <ReactTable
           className="-striped -highlight"
           style={{

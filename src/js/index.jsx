@@ -12,11 +12,13 @@ import Login from './containers/login';
 import Directory from './containers/directory';
 import { storage, storageKey, extComponentMap } from './utils/consts';
 import { actions as authActions } from './modules/auth/action';
+import { actions as commonActions } from './modules/common/action';
 
 const token = storage.getItem(storageKey);
 if (token) {
   store.dispatch( authActions.login_success(token) );
 }
+store.dispatch( commonActions.init() );
 
 const componentsMap = [];
 extComponentMap.forEach((app) => {

@@ -6,6 +6,8 @@ import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import BookmarksIcon from '@material-ui/icons/Bookmarks';
+import StarIcon from '@material-ui/icons/Star';
+import StarBorderIcon from '@material-ui/icons/StarBorder';
 import NextIcon from '@material-ui/icons/SkipNext';
 import StopIcon from '@material-ui/icons/Stop';
 import Drawer from '@material-ui/core/Drawer';
@@ -18,6 +20,10 @@ import ListItemText from '@material-ui/core/ListItemText';
 
 import File from '../../models/file';
 import Layout from '../common/layout.jsx';
+
+export const HIDE_STAR = 0;
+export const STAR = 1;
+export const STAR_BORDER = 2;
 
 const styles = (theme) => ({
   list: {
@@ -72,8 +78,11 @@ class AppBase extends React.Component {
       current,
       next_bookmark,
       stop_play_bookmark,
+      add_bookmark,
+      remove_bookmark,
       isPlaying,
       classes,
+      star
     } = this.props;
     const buttons = [
       <IconButton
@@ -92,6 +101,32 @@ class AppBase extends React.Component {
         <MenuIcon />
       </IconButton>
     ];
+    switch (star) {
+      case STAR: {
+        buttons.push((
+          <IconButton
+            key='bookmark'
+            color="inherit"
+            onClick={() => remove_bookmark(current.id)}
+          >
+            <StarIcon />
+          </IconButton>
+        ));
+        break;
+      }
+      case STAR_BORDER: {
+        buttons.push((
+          <IconButton
+            key='bookmark'
+            color="inherit"
+            onClick={() => add_bookmark(current.id)}
+          >
+            <StarBorderIcon />
+          </IconButton>
+        ));
+        break;
+      }
+    }
     if (isPlaying) {
       buttons.push(
         <IconButton
@@ -131,6 +166,18 @@ class AppBase extends React.Component {
     } = this.props;
     return (
       <div className={classes.list}>
+        <List>
+          <Link
+            className={classes.listItemLink}
+            to="/"
+          >
+            <ListItem button>
+              <ListItemText
+                primary="ホーム"
+              />
+            </ListItem>
+          </Link>
+        </List>
         <List>
           <Link
             className={classes.listItemLink}
@@ -178,7 +225,8 @@ class AppBase extends React.Component {
       children,
       headerRight,
       current_pos,
-      max_pos
+      max_pos,
+      show_appbar
     } = this.props;
     const title = max_pos > 0 && isFinite(current_pos) ? `${current.name} (${current_pos + 1} / ${max_pos})` : current.name;
     return (
@@ -187,6 +235,7 @@ class AppBase extends React.Component {
           title={title}
           headerLeft={this.renderHeaderLeft()}
           headerRight={headerRight}
+          show_appbar={show_appbar}
         >
           { children }
         </Layout>
@@ -210,20 +259,30 @@ class AppBase extends React.Component {
 
 AppBase.propTypes = {
   classes: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
   current: PropTypes.instanceOf(File),
   children: PropTypes.node,
   headerRight: PropTypes.node,
-  cd: PropTypes.func.isRequired,
-  next_bookmark: PropTypes.func.isRequired,
-  stop_play_bookmark: PropTypes.func.isRequired,
   isPlaying: PropTypes.bool.isRequired,
   current_pos: PropTypes.number,
   max_pos: PropTypes.number,
+  show_appbar: PropTypes.bool,
+  star: PropTypes.oneOf([
+    HIDE_STAR,
+    STAR,
+    STAR_BORDER
+  ]).isRequired,
+  cd: PropTypes.func.isRequired,
+  next_bookmark: PropTypes.func.isRequired,
+  stop_play_bookmark: PropTypes.func.isRequired,
+  add_bookmark: PropTypes.func.isRequired,
+  remove_bookmark: PropTypes.func.isRequired,
 };
 
 AppBase.defaultProps = {
   current: 0,
-  max_pos: 0
+  max_pos: 0,
+  show_appbar: true
 };
 
 export default withStyles(styles)(AppBase);

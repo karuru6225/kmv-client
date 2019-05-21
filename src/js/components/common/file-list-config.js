@@ -190,7 +190,7 @@ export const getBookmarkColumns = (deleteBookmark) => [
         color="inherit"
         onClick={(e) => {
           e.stopPropagation();
-          deleteBookmarkList(r.value);
+          deleteBookmark(r.value);
         }}
         style={{
           padding: '3px 6px',

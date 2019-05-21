@@ -34,23 +34,30 @@ const Layout = (props) => {
     title,
     headerLeft,
     headerRight,
-    children
+    children,
+    show_appbar
   } = props;
   return (
     <div className={classes.root}>
-      <AppBar position="static">
-        <Toolbar variant="dense" className={classes.toolbar}>
-          <div className={classes.left}>
-            { headerLeft }
-          </div>
-          <Typography variant="h6" color="inherit" noWrap>
-            { title }
-          </Typography>
-          <div className={classes.right}>
-            { headerRight }
-          </div>
-        </Toolbar>
-      </AppBar>
+      {(() => {
+        if (show_appbar) {
+          return (
+            <AppBar position="static">
+              <Toolbar variant="dense" className={classes.toolbar}>
+                <div className={classes.left}>
+                  { headerLeft }
+                </div>
+                <Typography variant="h6" color="inherit" noWrap>
+                  { title }
+                </Typography>
+                <div className={classes.right}>
+                  { headerRight }
+                </div>
+              </Toolbar>
+            </AppBar>
+          );
+        }
+      })()}
       <div>
         { children }
       </div>
@@ -63,11 +70,13 @@ Layout.propTypes = {
   children: PropTypes.node,
   title: PropTypes.string,
   headerLeft: PropTypes.node,
-  headerRight: PropTypes.node
+  headerRight: PropTypes.node,
+  show_appbar: PropTypes.bool,
 };
 
 Layout.defaultProps = {
   title: '',
+  show_appbar: true
 };
 
 export default withStyles(styles)(Layout);

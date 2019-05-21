@@ -19,13 +19,21 @@ import {
   KEY_LEFT,
   KEY_RIGHT,
   KEY_UP,
-  KEY_DOWN
+  KEY_DOWN,
+  KEY_SPACE
 } from '../../utils/consts';
 
 const styles = theme => ({
   container: {
     width: '100vw',
     height: 'calc(100vh - 48px)',
+    display: 'flex',
+    justifyContent: 'center'
+  },
+  containerFull: {
+    width: '100vw',
+    height: 'calc(100vh - 3px)',
+    marginTop: '3px',
     display: 'flex',
     justifyContent: 'center'
   },
@@ -87,7 +95,9 @@ const styles = theme => ({
 class Book extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      showAppbar: true
+    };
     this.updateActionMappings();
   }
 
@@ -113,6 +123,7 @@ class Book extends React.Component {
       this.actionMappings = {
         left: this.nextPage,
         up: toggle_reverse,
+        center: this.toggleAppbar,
         down: this.onePage,
         right: this.prevPage
       };
@@ -120,6 +131,7 @@ class Book extends React.Component {
       this.actionMappings = {
         left: this.prevPage,
         up: toggle_reverse,
+        center: this.toggleAppbar,
         down: this.onePage,
         right: this.nextPage
       };
@@ -172,6 +184,12 @@ class Book extends React.Component {
     });
   }
 
+  toggleAppbar = () => {
+    this.setState({
+      showAppbar: !this.state.showAppbar
+    });
+  }
+
   nextPage = () => {
     const {
       page,
@@ -209,9 +227,18 @@ class Book extends React.Component {
     } = this.state;
     if (x < w * 2 / 5) {
       this.actionMappings.left();
-    } else if ( w * 2 / 5 <= x
-      && x < w * 3 / 5 ) {
-      this.actionMappings.down();
+    } else if (w * 2 / 5 <= x
+      && x < w * 3 / 5 
+    ) {
+      if (y < h * 1 / 3) {
+        this.actionMappings.up();
+      } else if (h * 1 / 3 <= y
+        && y < h * 2 / 3
+      ) {
+        this.actionMappings.center();
+      } else {
+        this.actionMappings.down();
+      }
     } else {
       this.actionMappings.right();
     }
@@ -233,6 +260,10 @@ class Book extends React.Component {
       }
       case KEY_UP: {
         this.actionMappings.up();
+        break;
+      }
+      case KEY_SPACE: {
+        this.actionMappings.center();
         break;
       }
       case KEY_DOWN: {
@@ -304,14 +335,16 @@ class Book extends React.Component {
       reverse,
       change_page,
     } = this.props;
+    const {
+      showAppbar
+    } = this.state;
     const renderImages = this.getRenderImages();
     return (
       <AppBase
         headerRight={this.renderHeaderRight()}
-        show_progress={true}
-        reverse_progress={reverse}
         max_pos={pageCount}
         current_pos={page}
+        show_appbar={showAppbar}
       >
         <div className={classnames({
           [classes.progressBar]: !reverse,
@@ -326,7 +359,10 @@ class Book extends React.Component {
           {({measureRef}) =>
             <div
               ref={measureRef}
-              className={classnames(classes.container)}
+              className={classnames({
+                [classes.container]: showAppbar,
+                [classes.containerFull]: !showAppbar
+              })}
               onClick={this.handleClick}
             >  
               { renderImages.map((item, idx) => (
