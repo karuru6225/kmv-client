@@ -63,8 +63,8 @@ function* play(action) {
     });
     console.log(files);
     for (let i = files.length - 1; i > 0; i--) {
-      // const tgtIdx = Math.floor(Math.random() * (i + 1));
-      const tgtIdx = Math.floor((1 - Math.random() * Math.random()) * (i + 1));
+      const tgtIdx = Math.floor(Math.random() * (i + 1));
+      // const tgtIdx = Math.floor((1 - Math.random() * Math.random()) * (i + 1));
       const tmp = files[i];
       files[i] = files[tgtIdx];
       files[tgtIdx] = tmp;

@@ -7,6 +7,7 @@ import bookmark from './modules/bookmark/reducer';
 import { connectRouter } from 'connected-react-router';
 
 export default (history) => combineReducers({
+  debug: (_, action) => console.log(action) || {},
   common,
   auth,
   directory,

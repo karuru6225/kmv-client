@@ -82,3 +82,41 @@ window.addEventListener('DOMContentLoaded', () => {
     window.document.getElementById('root')
   );
 });
+
+let touchY = 0;
+
+document.body.addEventListener('touchstart', (e) =>
+{
+    touchY = e.touches[0].screenY;
+});
+
+document.body.addEventListener('touchmove', (e) =>
+{
+    let el = e.target;
+    const moveY = e.touches[0].screenY;
+    let noScroll = true;
+
+    while (el !== null)
+    {
+        if (el.offsetHeight < el.scrollHeight)
+        {
+            if (touchY < moveY && el.scrollTop === 0) {
+                break;
+            }
+
+            if (touchY > moveY && el.scrollTop === el.scrollHeight - el.offsetHeight) {
+                break;
+            }
+
+            noScroll = false;
+            break;
+        }
+        el = el.parentElement;
+    }
+
+    if (noScroll) {
+        e.preventDefault();
+    }
+
+    touchY = moveY;
+});
