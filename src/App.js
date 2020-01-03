@@ -1,26 +1,22 @@
 import React from 'react';
+import { Provider } from 'react-redux';
+import { Route, Switch } from 'react-router-dom';
+import { ConnectedRouter as Router } from 'connected-react-router';
+import store, { history } from './store';
 import logo from './logo.svg';
-import './App.css';
+import Dummy from './components/dummy.jsx';
+import Login from './containers/login.js';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
+export default () => (
+  <Provider store={store}>
+    <Router history={history}>
+      <div>
+        <Switch>
+          <Route path="/login" component={Login}/>
+          <Route path="*" component={Dummy}/>
+        </Switch>
         <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
-
-export default App;
+      </div>
+    </Router>
+  </Provider>
+);
